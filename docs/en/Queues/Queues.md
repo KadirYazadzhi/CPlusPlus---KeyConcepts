@@ -1,109 +1,51 @@
-# Queues in C++
+# Queues in C++ - The Ultimate Guide
 
-## 1. Introduction
-
-A Queue is a linear data structure following the **FIFO (First-In, First-Out)** principle. Like a queue at a store: the first person to arrive is served first.
-
-### Key Applications:
-*   Task Scheduling (OS).
-*   Data Buffering (IO, streaming).
-*   BFS (Breadth First Search) algorithms.
-*   Printer queues.
+## 1. Concept: FIFO Structure
+The queue is a linear data structure that follows the **First-In, First-Out (FIFO)** principle. The first element added is the first one to be processed. This is exactly like a queue in a store or at a bus stop.
 
 ---
 
 ## 2. Basic Operations
 
-Has two ends: **Front** and **Back**. Add to back, remove from front.
-Complexity **O(1)**.
+Operations have a time complexity of **O(1)**:
 
-1.  **push:** Add to back (enqueue).
-2.  **pop:** Remove from front (dequeue).
-3.  **front:** View first element.
-4.  **back:** View last element.
-5.  **empty:** Check if empty.
-6.  **size:** Get count.
+1.  **push (enqueue):** Adds an element to the end of the queue.
+2.  **pop (dequeue):** Removes the element from the beginning.
+3.  **front:** Accesses the first element.
+4.  **back:** Accesses the last element.
+5.  **empty / size:** Status checks.
 
 ---
 
-## 3. Using `std::queue`
+## 3. Types of Queues
 
-Defined in `<queue>`.
+### 3.1. Standard Queue (`std::queue`)
+Used for sequential processing. Like the stack, it is an adapter over `std::deque`.
+
+### 3.2. Double-Ended Queue (`std::deque`)
+Allows adding and removing from both ends.
+
+### 3.3. Circular Queue
+Solves the "wasted memory" problem in static arrays by connecting the end of the array to its beginning using modular arithmetic: `index = (index + 1) % size`.
+
+---
+
+## 4. Applications
+
+*   **BFS (Breadth First Search):** Level-order traversal in graphs – uses a queue to maintain the order of visited nodes.
+*   **Buffer Management:** Network packets, video streaming.
+*   **Task Scheduling:** Managing tasks in an operating system.
+
+---
+
+## 5. Priority Queue (`std::priority_queue`)
+
+A special form of queue where elements do not leave in arrival order, but according to their "importance" (priority). Typically implemented using a **Heap** structure.
 
 ```cpp
-#include <iostream>
 #include <queue>
-
-int main() {
-    std::queue<std::string> q;
-
-    // 1. Push
-    q.push("Client 1");
-    q.push("Client 2");
-
-    // 2. Access
-    std::cout << "Front: " << q.front() << std::endl; // Client 1
-    std::cout << "Back:  " << q.back()  << std::endl; // Client 2
-
-    // 3. Pop
-    q.pop(); // Removes Client 1
-    
-    std::cout << "New Front: " << q.front() << std::endl; // Client 2
-
-    return 0;
-}
+std::priority_queue<int> pq; // Largest element comes out first
 ```
 
 ---
-
-## 4. Types of Queues
-
-### 4.1. Deque (Double Ended Queue)
-Allows push/pop from both ends.
-
-### 4.2. Priority Queue
-Elements ordered by priority, not arrival time.
-
----
-
-## 5. Example: BFS (Breadth-First Search)
-
-Finding shortest path in graphs.
-
-```cpp
-#include <iostream>
-#include <vector>
-#include <queue>
-
-std::vector<std::vector<int>> adj = { {1, 2}, {0, 3}, {0}, {1} };
-
-void bfs(int start) {
-    std::vector<bool> visited(4, false);
-    std::queue<int> q;
-
-    visited[start] = true;
-    q.push(start);
-
-    while (!q.empty()) {
-        int curr = q.front();
-        q.pop();
-        std::cout << curr << " ";
-
-        for (int neighbor : adj[curr]) {
-            if (!visited[neighbor]) {
-                visited[neighbor] = true;
-                q.push(neighbor);
-            }
-        }
-    }
-}
-```
-
----
-
-## 6. Summary
-
-*   FIFO structure.
-*   Use `std::queue`.
-*   Key operations: `push`, `pop`, `front`.
-*   Essential for asynchronous processing and BFS.
+*(This document is part of the "C++ Key Concepts" course)*
