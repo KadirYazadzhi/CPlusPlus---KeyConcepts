@@ -1,0 +1,133 @@
+site_name: C++ Key Concepts / Ключови Концепции в C++
+site_description: Ultimate C++ Guide (Bilingual)
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - 🇺🇸 English Version:
+    - Introduction: en/README.md
+    - 1. References: en/References/References.md
+    - 2. Pointers: en/Pointers/Pointers.md
+    - 3. Arrays: en/Arrays/Arrays.md
+    - 4. 2D Arrays: en/Two_Dimensional_Arrays/Two_Dimensional_Arrays.md
+    - 5. Functions: en/Functions/Functions.md
+    - 6. Stacks: en/Stacks/Stacks.md
+    - 7. Queues: en/Queues/Queues.md
+    - 8. Sets: en/Sets/Sets.md
+    - 9. Vectors: en/Vectors/Vectors.md
+    - 10. Priority Queues: en/Priority_Queues/Priority_Queues.md
+    - 11. Maps: en/Maps/Maps.md
+    - 12. Unordered Maps: en/Unordered_Maps/Unordered_Maps.md
+    - 13. Lists: en/Lists/Lists.md
+    - 14. Deques: en/Deques/Deques.md
+    - 15. Multimaps: en/Multimaps/Multimaps.md
+    - 16. Multisets: en/Multisets/Multisets.md
+    - 17. Recursion: en/Recursion/Recursion.md
+    - 18. Classes & Objects: en/Classes_and_Objects/Classes_and_Objects.md
+    - 19. Inheritance: en/Inheritance_and_Polymorphism/Inheritance_and_Polymorphism.md
+    - 20. Operator Overloading: en/Operator_Overloading/Operator_Overloading.md
+    - 21. Smart Pointers: en/Smart_Pointers/Smart_Pointers.md
+    - 22. Move Semantics: en/Move_Semantics/Move_Semantics.md
+    - 23. Templates: en/Templates/Templates.md
+    - 24. Exceptions: en/Exception_Handling/Exception_Handling.md
+    - 25. Casting: en/Type_Casting/Type_Casting.md
+    - 26. Lambdas: en/Lambda_Expressions/Lambda_Expressions.md
+    - 27. STL Algorithms: en/STL_Algorithms/STL_Algorithms.md
+    - 28. File I/O: en/File_IO/File_IO.md
+    - 29. Multithreading: en/Multithreading/Multithreading.md
+    - 30. Design Patterns: en/Design_Patterns/Design_Patterns.md
+    - 31. Unit Testing: en/Unit_Testing/Unit_Testing.md
+    - 32. Preprocessor: en/Preprocessor_and_Macros/Preprocessor_and_Macros.md
+    - 33. CMake: en/Build_Systems_CMake/Build_Systems_CMake.md
+    - 34. Concepts: en/Concepts/Concepts.md
+    - 35. Modules: en/Modules/Modules.md
+    - 36. Ranges: en/Ranges/Ranges.md
+    - 37. Coroutines: en/Coroutines/Coroutines.md
+    - 38. Chrono & Filesystem: en/Chrono_and_Filesystem/Chrono_and_Filesystem.md
+    - 39. Optional & Variant: en/Optional_Variant_Any/Optional_Variant_Any.md
+    - 40. Type Traits: en/Type_Traits_SFINAE/Type_Traits_SFINAE.md
+    - 41. Bit Manipulation: en/Bit_Manipulation/Bit_Manipulation.md
+    - 42. Optimization: en/Optimization_Cache/Optimization_Cache.md
+    - 43. Serialization: en/Data_Serialization/Data_Serialization.md
+    - 44. SOLID: en/SOLID_Principles/SOLID_Principles.md
+  - 🇧🇬 Българска Версия:
+    - Начало: bg/README.md
+    - 1. Референции: bg/References/References.md
+    - 2. Указатели: bg/Pointers/Pointers.md
+    - 3. Масиви: bg/Arrays/Arrays.md
+    - 4. Двумерни масиви: bg/Two_Dimensional_Arrays/Two_Dimensional_Arrays.md
+    - 5. Функции: bg/Functions/Functions.md
+    - 6. Стекове: bg/Stacks/Stacks.md
+    - 7. Опашки: bg/Queues/Queues.md
+    - 8. Множества: bg/Sets/Sets.md
+    - 9. Вектори: bg/Vectors/Vectors.md
+    - 10. Опашки с приоритет: bg/Priority_Queues/Priority_Queues.md
+    - 11. Карти: bg/Maps/Maps.md
+    - 12. Неподредени карти: bg/Unordered_Maps/Unordered_Maps.md
+    - 13. Списъци: bg/Lists/Lists.md
+    - 14. Двустранни опашки: bg/Deques/Deques.md
+    - 15. Мултикарти: bg/Multimaps/Multimaps.md
+    - 16. Мултимножества: bg/Multisets/Multisets.md
+    - 17. Рекурсия: bg/Recursion/Recursion.md
+    - 18. Класове и Обекти: bg/Classes_and_Objects/Classes_and_Objects.md
+    - 19. Наследяване: bg/Inheritance_and_Polymorphism/Inheritance_and_Polymorphism.md
+    - 20. Оператори: bg/Operator_Overloading/Operator_Overloading.md
+    - 21. Умни указатели: bg/Smart_Pointers/Smart_Pointers.md
+    - 22. Move семантика: bg/Move_Semantics/Move_Semantics.md
+    - 23. Шаблони: bg/Templates/Templates.md
+    - 24. Изключения: bg/Exception_Handling/Exception_Handling.md
+    - 25. Casting: bg/Type_Casting/Type_Casting.md
+    - 26. Ламбди: bg/Lambda_Expressions/Lambda_Expressions.md
+    - 27. STL Алгоритми: bg/STL_Algorithms/STL_Algorithms.md
+    - 28. Файлове: bg/File_IO/File_IO.md
+    - 29. Нишки: bg/Multithreading/Multithreading.md
+    - 30. Design Patterns: bg/Design_Patterns/Design_Patterns.md
+    - 31. Тестване: bg/Unit_Testing/Unit_Testing.md
+    - 32. Препроцесор: bg/Preprocessor_and_Macros/Preprocessor_and_Macros.md
+    - 33. CMake: bg/Build_Systems_CMake/Build_Systems_CMake.md
+    - 34. Концепти: bg/Concepts/Concepts.md
+    - 35. Модули: bg/Modules/Modules.md
+    - 36. Обхвати: bg/Ranges/Ranges.md
+    - 37. Корутини: bg/Coroutines/Coroutines.md
+    - 38. Chrono & Filesystem: bg/Chrono_and_Filesystem/Chrono_and_Filesystem.md
+    - 39. Optional & Variant: bg/Optional_Variant_Any/Optional_Variant_Any.md
+    - 40. Type Traits: bg/Type_Traits_SFINAE/Type_Traits_SFINAE.md
+    - 41. Битови операции: bg/Bit_Manipulation/Bit_Manipulation.md
+    - 42. Оптимизация: bg/Optimization_Cache/Optimization_Cache.md
+    - 43. Сериализация: bg/Data_Serialization/Data_Serialization.md
+    - 44. SOLID: bg/SOLID_Principles/SOLID_Principles.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - footnotes
+  - attr_list
+  - md_in_html
