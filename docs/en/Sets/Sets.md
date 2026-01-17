@@ -1,81 +1,56 @@
-# Sets in C++
+# Sets in C++ - The Ultimate Guide
 
-## 1. Introduction
-
-`std::set` is an associative container storing **sorted** and **unique** elements. Defined in `<set>`.
-
-### Characteristics:
-*   **Uniqueness:** No duplicates allowed.
-*   **Sorted:** Elements are always sorted (default: ascending).
-*   **Implementation:** Red-Black Tree.
-*   **Complexity:** O(log N) for search/insert/delete.
+## 1. Concept: Uniqueness and Order
+In C++, `std::set` is an associative container that contains unique objects. All elements are automatically maintained in a sorted order. If you attempt to add a duplicate, it will simply be ignored.
 
 ---
 
-## 2. Operations
+## 2. Internal Implementation
+Almost all compilers implement `std::set` as a **Red-Black Tree** – a type of self-balancing binary search tree.
 
-### 2.1. Insert
-
-```cpp
-#include <iostream>
-#include <set>
-
-int main() {
-    std::set<int> s;
-    s.insert(10);
-    s.insert(5);
-    s.insert(10); // Duplicate ignored
-
-    // Set is: {5, 10}
-    return 0;
-}
-```
-
-### 2.2. Custom Sort
-Use a comparator.
-
-```cpp
-std::set<int, std::greater<int>> descSet; // Descending
-```
+### 2.1. Complexity
+*   **Search:** O(log N)
+*   **Insertion:** O(log N)
+*   **Deletion:** O(log N)
 
 ---
 
-## 3. Search
+## 3. Key Functions
 
-### 3.1. `find()`
-Returns iterator.
+### 3.1. insert()
+Adds an element. Returns a `std::pair` containing an iterator to the element and a boolean value (whether the insertion was successful).
 
-```cpp
-if (s.find(10) != s.end()) { /* Found */ }
-```
+### 3.2. find()
+Returns an iterator to the element if found, or `s.end()` if missing.
 
-### 3.2. `count()`
-Returns 1 or 0.
+### 3.3. lower_bound() / upper_bound()
+Extremely useful for searching for intervals in sorted data.
 
 ---
 
-## 4. Erase
+## 4. Types of Sets
 
+### 4.1. std::set (Standard)
+Keeps elements sorted.
+
+### 4.2. std::unordered_set (C++11)
+Uses a **Hash Table**. Elements are not ordered, but search speed is **O(1)** on average.
+
+### 4.3. std::multiset
+Allows storing duplicates while maintaining sorted order.
+
+---
+
+## 5. Custom Sorting
+You can change the ordering criteria by providing a comparator in the template:
 ```cpp
-s.erase(10); // By value
-s.erase(s.begin()); // By iterator
+std::set<int, std::greater<int>> s; // Sorting in descending order
 ```
 
 ---
 
-## 5. Iteration
-
-Elements are `const`. Cannot modify directly (would break sort order).
-
-```cpp
-for (int x : s) std::cout << x << " ";
-```
+## 6. Iterators
+Elements in `std::set` are constant. You cannot modify an element directly via an iterator, as that would break the tree structure. To "modify" an element, you must erase it and insert a new one.
 
 ---
-
-## 6. Summary
-
-*   Use when you need **uniqueness** and **order**.
-*   O(log N).
-*   Immutable elements.
-*   For O(1) without order, use `std::unordered_set`.
+*(This document is part of the "C++ Key Concepts" course)*
