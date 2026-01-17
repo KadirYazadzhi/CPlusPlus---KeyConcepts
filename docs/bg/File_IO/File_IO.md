@@ -1,125 +1,60 @@
-# Работа с Файлове (File I/O) в C++
+# Работа с Файлове (File I/O) в C++ - Пълно ръководство
 
-## 1. Въведение
-
-В C++ работата с файлове се извършва чрез потоци (streams), подобно на работата с конзолата (`cin`/`cout`). Класовете са дефинирани в `<fstream>`.
-
-*   `std::ofstream` (Output File Stream): За писане във файлове.
-*   `std::ifstream` (Input File Stream): За четене от файлове.
-*   `std::fstream`: За четене и писане едновременно.
+## 1. Въведение: Потоци от данни
+В C++ работата с файлове се осъществява чрез класовете в заглавния файл `<fstream>`. Те работят на принципа на "потоците" (streams), подобно на `std::cin` и `std::cout`.
 
 ---
 
-## 2. Писане във Файл
+## 2. Ключови класове
+
+1.  **ifstream:** (Input File Stream) За четене от файл.
+2.  **ofstream:** (Output File Stream) За писане във файл.
+3.  **fstream:** За четене и писане едновременно.
+
+---
+
+## 3. Отваряне и затваряне на файлове
+
+### 3.1. Режими на отваряне
+*   `std::ios::app` - Добавяне в края на файла (Append).
+*   `std::ios::trunc` - Изтриване на старото съдържание при отваряне.
+*   `std::ios::binary` - Работа в бинарен режим.
 
 ```cpp
-#include <iostream>
-#include <fstream>
-#include <string>
-
-int main() {
-    // Отваряне на файл за писане
-    // Ако файлът не съществува, се създава.
-    // Ако съществува, съдържанието му се изтрива (Truncate), освен ако не ползваме std::ios::app
-    std::ofstream outFile("example.txt");
-
-    if (outFile.is_open()) {
-        outFile << "Hello, File I/O!\n";
-        outFile << "This is line 2.\n";
-        outFile << 42 << std::endl;
-        
-        outFile.close(); // Добра практика, макар че деструкторът го прави автоматично
-        std::cout << "File written successfully.\n";
-    } else {
-        std::cerr << "Error opening file!\n";
-    }
-
-    return 0;
+std::ofstream out("data.txt", std::ios::app);
+if (out.is_open()) {
+    out << "Нов ред\n";
+    out.close();
 }
 ```
 
 ---
 
-## 3. Четене от Файл
+## 4. Четене на данни
+
+*   **Дума по дума:** Използва се операторът `>>`.
+*   **Ред по ред:** Използва се `std::getline(file, line)`.
+*   **Целият файл:** Чрез итератори или `rdbuf()`.
+
+---
+
+## 5. Бинарни файлове срещу Текстови
+Текстовите файлове съхраняват данни като символи (четими от хора). Бинарните файлове съхраняват директните битове от паметта. Те са по-малки и по-бързи, но изискват използването на `read()` и `write()` методите.
 
 ```cpp
-#include <iostream>
-#include <fstream>
-#include <string>
-
-int main() {
-    std::ifstream inFile("example.txt");
-
-    if (!inFile) { // Проверка за грешка
-        std::cerr << "File not found!\n";
-        return 1;
-    }
-
-    std::string line;
-    // Четене ред по ред
-    while (std::getline(inFile, line)) {
-        std::cout << line << "\n";
-    }
-    
-    // Алтернатива: Четене дума по дума
-    // std::string word;
-    // while (inFile >> word) { ... }
-
-    inFile.close();
-    return 0;
-}
+int val = 12345;
+file.write(reinterpret_cast<char*>(&val), sizeof(val));
 ```
 
 ---
 
-## 4. Режими на отваряне (File Modes)
-
-Можем да комбинираме флагове с оператора `|`.
-
-*   `std::ios::in`: За четене (по подразбиране за ifstream).
-*   `std::ios::out`: За писане (по подразбиране за ofstream).
-*   `std::ios::app`: Append (добавяне в края, без триене).
-*   `std::ios::trunc`: Изтриване на съдържанието (по подразбиране за out).
-*   `std::ios::binary`: Бинарен режим (без преобразуване на `\n`).
-
-```cpp
-// Отваряне за добавяне (Append)
-std::ofstream logFile("log.txt", std::ios::out | std::ios::app);
-logFile << "New log entry\n";
-```
+## 6. Управление на грешки
+Винаги проверявайте състоянието на потока след отваряне или четене:
+*   `fail()`: Връща true при сериозна грешка.
+*   `eof()`: Връща true, ако сте стигнали края на файла.
 
 ---
 
-## 5. Бинарни Файлове
-
-При текстовите файлове числата се записват като символи ("123" са 3 байта). При бинарните се записват директно битовете от паметта (int 123 е 4 байта).
-
-```cpp
-struct Data {
-    int id;
-    double value;
-};
-
-// Писане
-Data d = {1, 3.14};
-std::ofstream binOut("data.bin", std::ios::binary);
-binOut.write(reinterpret_cast<char*>(&d), sizeof(Data));
-binOut.close();
-
-// Четене
-Data inD;
-std::ifstream binIn("data.bin", std::ios::binary);
-binIn.read(reinterpret_cast<char*>(&inD), sizeof(Data));
-```
-
-⚠️ **Внимание:** Бинарното записване на сложни обекти (`std::string`, `std::vector`) е опасно, защото те съдържат указатели. Трябва да се сериализират поле по поле.
-
----
-
-## 6. Обобщение
-
-*   Използвайте `std::getline` за четене на цели редове.
-*   Винаги проверявайте дали файлът е отворен успешно (`is_open()` или `!fail()`).
-*   Използвайте `std::ios::binary` за нетекстови данни.
+*(Този документ е част от курса "Ключови концепции в C++")*
 
 ```
