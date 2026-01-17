@@ -45,5 +45,16 @@
 28. [Работа с Файлове (File I/O)](./File_IO/File_IO.md)
 29. [Многонишково Програмиране (Multithreading)](./Multithreading/Multithreading.md)
 
+### Инженерни Практики и Инструменти
+30. [Шаблони за Дизайн (Design Patterns)](./Design_Patterns/Design_Patterns.md)
+31. [Тестване на Код (Unit Testing)](./Unit_Testing/Unit_Testing.md)
+32. [Препроцесор и Макроси (Preprocessor and Macros)](./Preprocessor_and_Macros/Preprocessor_and_Macros.md)
+33. [Build Системи и CMake (Build Systems - CMake)](./Build_Systems_CMake/Build_Systems_CMake.md)
+
+### C++20 Иновации
+34. [Концепти (Concepts)](./Concepts/Concepts.md)
+35. [Модули (Modules)](./Modules/Modules.md)
+36. [Обхвати (Ranges)](./Ranges/Ranges.md)
+
 ---
 *Забележка: Документацията вътре във всяка папка е на български език.*

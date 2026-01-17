@@ -45,5 +45,16 @@ The goal of the project is to provide in-depth explanations, real-world examples
 28. [File I/O](./File_IO/File_IO.md)
 29. [Multithreading](./Multithreading/Multithreading.md)
 
+### Engineering Practices & Tools
+30. [Design Patterns](./Design_Patterns/Design_Patterns.md)
+31. [Unit Testing](./Unit_Testing/Unit_Testing.md)
+32. [Preprocessor and Macros](./Preprocessor_and_Macros/Preprocessor_and_Macros.md)
+33. [Build Systems - CMake](./Build_Systems_CMake/Build_Systems_CMake.md)
+
+### C++20 Innovations
+34. [Concepts](./Concepts/Concepts.md)
+35. [Modules](./Modules/Modules.md)
+36. [Ranges](./Ranges/Ranges.md)
+
 ---
 *Note: The documentation within each folder is written in Bulgarian.*
