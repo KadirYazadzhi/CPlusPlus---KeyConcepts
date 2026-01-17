@@ -55,6 +55,18 @@ The goal of the project is to provide in-depth explanations, real-world examples
 34. [Concepts](./Concepts/Concepts.md)
 35. [Modules](./Modules/Modules.md)
 36. [Ranges](./Ranges/Ranges.md)
+37. [Coroutines](./Coroutines/Coroutines.md)
+
+### Modern Libraries & Metaprogramming
+38. [Chrono and Filesystem](./Chrono_and_Filesystem/Chrono_and_Filesystem.md)
+39. [Optional, Variant, and Any](./Optional_Variant_Any/Optional_Variant_Any.md)
+40. [Type Traits and SFINAE](./Type_Traits_SFINAE/Type_Traits_SFINAE.md)
+
+### Low-Level & Architecture
+41. [Bit Manipulation](./Bit_Manipulation/Bit_Manipulation.md)
+42. [Optimization and Cache](./Optimization_Cache/Optimization_Cache.md)
+43. [Data Serialization](./Data_Serialization/Data_Serialization.md)
+44. [SOLID Principles](./SOLID_Principles/SOLID_Principles.md)
 
 ---
 *Note: The documentation within each folder is written in Bulgarian.*

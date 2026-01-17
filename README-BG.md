@@ -55,6 +55,18 @@
 34. [Концепти (Concepts)](./Concepts/Concepts.md)
 35. [Модули (Modules)](./Modules/Modules.md)
 36. [Обхвати (Ranges)](./Ranges/Ranges.md)
+37. [Корутини (Coroutines)](./Coroutines/Coroutines.md)
+
+### Модерни Библиотеки и Метапрограмиране
+38. [Време и Файлова Система (Chrono and Filesystem)](./Chrono_and_Filesystem/Chrono_and_Filesystem.md)
+39. [Optional, Variant и Any](./Optional_Variant_Any/Optional_Variant_Any.md)
+40. [Type Traits и SFINAE](./Type_Traits_SFINAE/Type_Traits_SFINAE.md)
+
+### Ниско Ниво и Архитектура
+41. [Битови Манипулации (Bit Manipulation)](./Bit_Manipulation/Bit_Manipulation.md)
+42. [Оптимизация и Кеш (Optimization and Cache)](./Optimization_Cache/Optimization_Cache.md)
+43. [Сериализация на Данни (Data Serialization)](./Data_Serialization/Data_Serialization.md)
+44. [SOLID Принципи (SOLID Principles)](./SOLID_Principles/SOLID_Principles.md)
 
 ---
 *Забележка: Документацията вътре във всяка папка е на български език.*
