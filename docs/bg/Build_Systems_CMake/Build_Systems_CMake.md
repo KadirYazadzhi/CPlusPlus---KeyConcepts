@@ -1,139 +1,65 @@
-# Build Системи и CMake (Build Systems - CMake) в C++
+# Build Системи и CMake в C++ - Пълно ръководство
 
-## 1. Защо ни е Build система?
-
-Когато пишем проста програма ("Hello World"), можем да я компилираме директно:
-`g++ main.cpp -o app`
-
-Но в реален проект имаме:
-*   Стотици `.cpp` файлове.
-*   Зависимости между тях.
-*   Външни библиотеки (Boost, Qt, OpenCV).
-*   Различни настройки за Debug и Release.
-*   Необходимост да работи на Windows (Visual Studio), Linux (Make/Ninja), macOS (Xcode).
-
-Ръчното управление на това е невъзможно. Тук идва **CMake**.
+## 1. Въведение: Защо ни е CMake?
+Когато проектът ви порасне над един файл, ръчната компилация става кошмар. Имате нужда от инструмент, който да управлява зависимостите, да намира библиотеки и да генерира инструкции за компилатора. **CMake** е индустриалният стандарт за C++ – той не е компилатор, а генератор на проектни файлове.
 
 ---
 
-## 2. Какво е CMake?
-
-CMake (Cross-platform Make) не е компилатор. Той е **генератор** на build файлове.
-Вие описвате проекта си в `CMakeLists.txt`, а CMake генерира:
-*   `Makefile` (за Linux/Unix)
-*   `.sln` проект (за Visual Studio)
-*   `build.ninja` (за Ninja)
-
-Това ви позволява да напишете конфигурацията веднъж и тя да работи навсякъде.
-
----
-
-## 3. Основи на CMakeLists.txt
-
-Всеки CMake проект започва с файл `CMakeLists.txt` в коренната директория.
-
-### 3.1. Минимален пример
+## 2. Анатомия на CMakeLists.txt
+Всеки проект започва с файл `CMakeLists.txt`.
 
 ```cmake
-# 1. Изисквана версия на CMake
 cmake_minimum_required(VERSION 3.10)
+project(MyProject VERSION 1.0)
 
-# 2. Име на проекта и език
-project(MyProject VERSION 1.0 LANGUAGES CXX)
-
-# 3. Стандарт на C++ (C++17)
+# Задаване на C++ стандарт
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# 4. Създаване на изпълним файл (Executable)
-# app е името на файла, main.cpp е сорс кодът
-add_executable(app main.cpp utils.cpp)
+# Създаване на изпълним файл
+add_executable(MyApp main.cpp utils.cpp)
 ```
 
-### 3.2. Добавяне на библиотеки
+---
 
-Ако имате разделение на код, добра практика е да правите библиотеки.
+## 3. Управление на Библиотеки
 
+### 3.1. Статични и Динамични библиотеки
+Можете да разделите кода си на логически части:
 ```cmake
-# Създава статична библиотека (libmathlib.a / mathlib.lib)
-add_library(mathlib STATIC math.cpp geometry.cpp)
-
-# Свързване на библиотеката с главната програма
-target_link_libraries(app PRIVATE mathlib)
+add_library(MathLib STATIC src/math.cpp)
+target_link_libraries(MyApp PRIVATE MathLib)
 ```
 
----
-
-## 4. Управление на зависимости (Include Directories)
-
-Когато имате хедър файлове в подпапки (напр. `include/`), трябва да кажете на CMake къде да ги търси.
-
-```cmake
-# Структура:
-# /src (cpp файлове)
-# /include (h файлове)
-
-target_include_directories(app PRIVATE ${CMAKE_SOURCE_DIR}/include)
-```
-
----
-
-## 5. Как се компилира с CMake?
-
-Процесът винаги е в две стъпки: **Configure** и **Build**.
-Препоръчва се "Out-of-source build" (в отделна папка), за да не замърсявате кода.
-
-```bash
-# 1. Създаване на папка за build
-mkdir build
-cd build
-
-# 2. Генериране (Configure)
-# .. сочи към папката, където е CMakeLists.txt
-cmake .. 
-
-# 3. Компилиране (Build)
-cmake --build .
-```
-
----
-
-## 6. Variables и Cache
-
-CMake има променливи.
-*   `${CMAKE_SOURCE_DIR}`: Къде е сорс кодът.
-*   `${PROJECT_NAME}`: Името на проекта.
-
-Можете да подавате опции от командния ред:
-`cmake .. -DCMAKE_BUILD_TYPE=Release`
-
-В кода:
-```cmake
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_definitions(-DDEBUG_MODE)
-endif()
-```
-
----
-
-## 7. find_package (Външни библиотеки)
-
-Ако искате да ползвате инсталирана библиотека (напр. OpenCV или Boost).
-
+### 3.2. Намиране на външни пакети (find_package)
+CMake може автоматично да открива инсталирани библиотеки (напр. OpenCV, Boost, Qt):
 ```cmake
 find_package(OpenCV REQUIRED)
-
-add_executable(vision_app main.cpp)
-
-# Свързване с намерената библиотека
-target_link_libraries(vision_app PRIVATE ${OpenCV_LIBS})
+target_link_libraries(MyApp PRIVATE ${OpenCV_LIBS})
 ```
 
 ---
 
-## 8. Обобщение
+## 4. Include Директории
+За да не пишете дълги пътища в `#include`, кажете на CMake къде са хедърите:
+```cmake
+target_include_directories(MyApp PRIVATE ${CMAKE_SOURCE_DIR}/include)
+```
 
-*   CMake е стандартът за C++ проекти.
-*   Никога не използвайте директни пътища (`C:\Users\John...`), използвайте относителни пътища и променливи.
-*   Разделяйте проекта на малки библиотеки (`add_library`) вместо един огромен изпълним файл.
-*   Винаги правете build в отделна директория (`build/`).
+---
+
+## 5. Процесът на Build
+Винаги използвайте отделна папка за компилация, за да запазите сорс кода чист:
+1. `mkdir build && cd build`
+2. `cmake ..` (Генериране)
+3. `cmake --build .` (Компилация)
+
+---
+
+## 6. Предимства на CMake
+*   **Крос-платформеност:** Работи еднакво добре на Windows, Linux и macOS.
+*   **Интеграция:** Поддържа се от всички големи IDE (VS Code, CLion, Visual Studio).
+*   **Мащабируемост:** Управлява проекти с хиляди файлове без проблем.
+
+---
+*(Този документ е част от курса "Ключови концепции в C++")*
