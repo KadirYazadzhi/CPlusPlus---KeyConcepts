@@ -1,134 +1,85 @@
-# Stacks in C++
+# Stacks in C++ - The Ultimate Guide
 
-## 1. Introduction
-
-A Stack is a fundamental data structure of type **LIFO (Last-In, First-Out)**. Imagine a stack of plates: you can only add a new plate on top, and you can only take the top plate off.
-
-### Key Applications:
-*   Function Call Stack management.
-*   DFS (Depth First Search) algorithms.
-*   Expression parsing (balanced parentheses).
-*   Undo/Redo features.
+## 1. Concept: LIFO Structure
+The stack is an abstract data structure that operates on the **Last-In, First-Out (LIFO)** principle. This means the last element added is the first one to be removed. Imagine a stack of plates or a deck of cards – you can only add to the top and take from the top.
 
 ---
 
-## 2. Basic Operations
+## 2. Operations and Complexity
 
-Stack supports limited operations, all with **O(1)** complexity:
+All basic stack operations are extremely fast (**O(1)**):
 
-1.  **push:** Add element to top.
-2.  **pop:** Remove top element.
-3.  **top (or peek):** View top element.
-4.  **empty:** Check if empty.
-5.  **size:** Get count.
+1.  **push:** Adds an element to the top.
+2.  **pop:** Removes the top element.
+3.  **top:** Returns the value of the top element without removing it.
+4.  **empty:** Checks if the stack is empty.
+5.  **size:** Returns the number of elements.
 
-⚠️ **Warning:** Calling `pop()` or `top()` on an empty stack is Undefined Behavior. Always check `empty()`.
+⚠️ **Warning:** In C++, `pop()` does not return a value (it is `void`). You must call `top()` first if you want to see the value before removing it.
 
 ---
 
-## 3. Using `std::stack`
+## 3. Using std::stack (STL)
 
-C++ STL provides `std::stack` in `<stack>`.
+In the STL, `std::stack` is not a container itself but a **container adapter**. This means it wraps another container (default is `std::deque`) and restricts its interface.
 
 ```cpp
-#include <iostream>
 #include <stack>
-
-int main() {
-    std::stack<int> s;
-
-    // 1. Add (Push)
-    s.push(10); // Stack: [10]
-    s.push(20); // Stack: [10, 20] (20 is top)
-    s.push(30);
-
-    // 2. Size
-    std::cout << "Size: " << s.size() << std::endl; // 3
-
-    // 3. Top
-    std::cout << "Top: " << s.top() << std::endl; // 30
-
-    // 4. Remove (Pop)
-    s.pop(); // Removes 30
-    std::cout << "New Top: " << s.top() << std::endl; // 20
-
-    // 5. Iterate (destroys stack)
-    while (!s.empty()) {
-        std::cout << s.top() << " ";
-        s.pop();
-    }
-    // Output: 20 10
-    
-    return 0;
-}
-```
-
----
-
-## 4. Implementation Details
-
-`std::stack` is a **container adapter**. It doesn't manage memory directly but uses another container (default is `std::deque`) underneath.
-
-You can swap the underlying container:
-```cpp
 #include <vector>
-std::stack<int, std::vector<int>> vectorStack;
+
+// We can change the underlying container to a vector:
+std::stack<int, std::vector<int>> s;
 ```
 
 ---
 
-## 5. Example: Balanced Parentheses
+## 4. Manual Implementation (Deep Dive)
 
-Check if `{[()]}` is valid.
-
-**Algorithm:**
-1.  Iterate string.
-2.  If open bracket `(`, `{`, `[`, push to stack.
-3.  If closed bracket:
-    *   Stack empty -> Error.
-    *   Top matches? Pop.
-    *   Mismatch -> Error.
-4.  Stack empty at end -> Valid.
+To understand how a stack works, it is useful to see how it is implemented using an array.
 
 ```cpp
-#include <iostream>
-#include <stack>
-#include <string>
+template <typename T>
+class MyStack {
+    T* data;
+    int top_index;
+    int capacity;
 
-bool isValid(std::string expression) {
-    std::stack<char> s;
-
-    for (char c : expression) {
-        if (c == '(' || c == '{' || c == '[') {
-            s.push(c);
-        } else {
-            if (s.empty()) return false;
-            
-            char top = s.top();
-            if ((c == ')' && top == '(') ||
-                (c == '}' && top == '{') ||
-                (c == ']' && top == '[')) {
-                s.pop();
-            } else {
-                return false;
-            }
-        }
+public:
+    MyStack(int size) : capacity(size), top_index(-1) {
+        data = new T[capacity];
     }
-    return s.empty();
-}
+    ~MyStack() { delete[] data; }
+
+    void push(T val) {
+        if (top_index >= capacity - 1) throw std::overflow_error("Stack Overflow");
+        data[++top_index] = val;
+    }
+
+    void pop() {
+        if (top_index < 0) return;
+        top_index--;
+    }
+
+    T top() { return data[top_index]; }
+};
 ```
 
 ---
 
-## 6. Stack Overflow
+## 5. Real-world Applications
 
-Occurs when the system Call Stack (fixed size) runs out of memory, usually due to infinite recursion. `std::stack` uses Heap memory, so it is limited only by RAM.
+1.  **Call Stack:** Managing function calls in the CPU.
+2.  **Reverse Polish Notation (RPN):** Calculating mathematical expressions.
+3.  **Undo/Redo:** In text editors like VS Code or Word.
+4.  **DFS (Depth First Search):** Traversing graphs.
+5.  **Bracket Balancing:** Checking if brackets in code are correctly closed.
 
 ---
 
-## 7. Summary
+## 6. Common Issues
 
-*   LIFO structure.
-*   Use `std::stack`.
-*   Check `!empty()` before access.
-*   Complexity: O(1).
+*   **Stack Overflow:** When adding too many elements to a fixed-size stack (often during infinite recursion).
+*   **Empty Access:** Attempting to call `top()` or `pop()` on an empty stack leads to a crash. Always check `!s.empty()`.
+
+---
+*(This document is part of the "C++ Key Concepts" course)*
