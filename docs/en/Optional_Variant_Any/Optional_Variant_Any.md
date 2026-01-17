@@ -1,41 +1,40 @@
-# Optional, Variant, and Any (C++17)
+# Modern Data Types (Optional, Variant, Any) - The Ultimate Guide
 
-## 1. Introduction
-
-Type-safe containers for values that might be missing or have multiple types.
-
----
-
-## 2. std::optional
-
-For values that might not exist.
+## 1. std::optional: Missing Values
+`std::optional` (C++17) solves the issue of functions that might not always return a result. You no longer need to use `nullptr` or magic numbers like `-1`.
 
 ```cpp
-std::optional<int> find(int id) {
+std::optional<int> findUser(int id) {
     if (id == 1) return 42;
-    return std::nullopt;
+    return std::nullopt; // No value
 }
 ```
 
 ---
 
-## 3. std::variant
-
-A type-safe union.
+## 2. std::variant: Type-safe Union
+`std::variant` is a type that can store one value from a predefined list of types. It is **type-safe** – it always knows what type it currently holds.
 
 ```cpp
-std::variant<int, string> v = 10;
-v = "Hello";
+std::variant<int, std::string> v = "Hello";
+v = 10;
+int x = std::get<int>(v);
 ```
 
----
-
-## 4. std::any
-
-Can hold **any** type.
+### 2.1. std::visit
+The most powerful way to work with `variant` is via the Visitor pattern (using lambdas for every possible type).
 
 ---
 
-## 5. Summary
+## 3. std::any: Full Flexibility
+`std::any` can store **absolutely any** data type. To retrieve the value, you must explicitly cast it (`std::any_cast`).
 
-Eliminates the need for `nullptr` and unsafe `void*`.
+---
+
+## 4. Summary
+*   **optional:** Use for optional results.
+*   **variant:** When you know the possible types (e.g., Error OR Success).
+*   **any:** When types are completely unknown (rarely recommended).
+
+---
+*(This document is part of the "C++ Key Concepts" course)*

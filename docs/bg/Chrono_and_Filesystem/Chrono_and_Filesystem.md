@@ -1,97 +1,45 @@
-# Време и Файлова Система (Chrono and Filesystem) в C++
+# Време и Файлова Система в C++ - Пълно ръководство
 
-## 1. std::chrono (Библиотека за време)
+## 1. std::chrono: Работа с времето
+Библиотеката "<chrono>" (C++11/17/20) е стандартът за прецизна работа с време. Тя е базирана на строга типизация, за да се избегнат грешки от тип "секунди към милисекунди".
 
-Въведена в C++11, `<chrono>` е стандартният начин за работа с време, продължителност и часовници. Тя е строго типизирана, което предотвратява грешки (напр. събиране на секунди с милисекунди без преобразуване).
+### 1.1. Основни концепции
+*   **Duration:** Продължителност (напр. 5 минути).
+*   **Time Point:** Конкретен момент (напр. "сега").
+*   **Clock:** Източник на време (`steady_clock` за интервали, `system_clock` за календарно време).
 
-### 1.1. Основни компоненти
-*   **Durations (Продължителност):** Разлика между два момента (`seconds`, `milliseconds`).
-*   **Time Points (Точки във времето):** Конкретен момент (`now`).
-*   **Clocks (Часовници):** `system_clock` (стенен часовник), `steady_clock` (монотонен, за измерване на интервали).
-
-### 1.2. Пример: Измерване на производителност
-
+### 1.2. Пример: Измерване на скорост
 ```cpp
-#include <iostream>
-#include <chrono>
-#include <thread>
+auto start = std::chrono::high_resolution_clock::now();
+// ... код ...
+auto end = std::chrono::high_resolution_clock::now();
+std::chrono::duration<double, std::milli> ms = end - start;
+```
 
-void heavyWork() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-}
+---
 
-int main() {
-    auto start = std::chrono::high_resolution_clock::now();
-    
-    heavyWork();
+## 2. std::filesystem: Директории и файлове
+Въведена в C++17, "<filesystem>" предоставя крос-платформен начин за работа с диска.
 
-    auto end = std::chrono::high_resolution_clock::now();
-    
-    // Пресмятане на разликата
-    std::chrono::duration<double> diff = end - start;
-    
-    std::cout << "Time taken: " << diff.count() << " s\n";
-    
-    // Преобразуване в милисекунди (integer)
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
-    std::cout << "Time taken: " << ms.count() << " ms\n";
+### 2.1. Пътища и Навигация
+*   `path`: Обект, представляващ път във файловата система.
+*   `exists()`: Проверка за наличие.
+*   `create_directory()`: Създаване на папка.
+
+### 2.2. Обхождане (Directory Iteration)
+Можете лесно да преминете през всички файлове в папка:
+```cpp
+for (auto const& entry : std::filesystem::directory_iterator("src")) {
+    std::cout << entry.path() << "\n";
 }
 ```
 
 ---
 
-## 2. std::filesystem (Файлова система)
-
-Въведена в C++17, `<filesystem>` предоставя модерен, крос-платформен начин за работа с файлове и директории. Замества старите C-функции и Boost.Filesystem.
-
-### 2.1. Пътища (Paths)
-
-```cpp
-#include <iostream>
-#include <filesystem>
-namespace fs = std::filesystem;
-
-int main() {
-    fs::path p = "/home/user/docs/file.txt";
-
-    std::cout << "Filename: " << p.filename() << "\n";      // file.txt
-    std::cout << "Extension: " << p.extension() << "\n";    // .txt
-    std::cout << "Parent: " << p.parent_path() << "\n";     // /home/user/docs
-}
-```
-
-### 2.2. Манипулация на файлове
-
-```cpp
-// Проверка дали файл съществува
-if (fs::exists("config.txt")) {
-    // Копиране
-    fs::copy("config.txt", "config.bak", fs::copy_options::overwrite_existing);
-    
-    // Преименуване / Местене
-    fs::rename("config.bak", "backup/config.bak");
-    
-    // Размер на файл
-    std::cout << "Size: " << fs::file_size("config.txt") << " bytes\n";
-}
-```
-
-### 2.3. Обхождане на директории
-
-```cpp
-// Рекурсивно обхождане на папка
-for (const auto& entry : fs::recursive_directory_iterator("src")) {
-    if (entry.is_regular_file() && entry.path().extension() == ".cpp") {
-        std::cout << "Found CPP source: " << entry.path() << "\n";
-    }
-}
-```
+## 3. Защо са важни?
+1.  **Преносимост:** Кодът работи еднакво на Windows и Linux.
+2.  **Безопасност:** Автоматично се грижат за разликите в пътищата (`/` срещу `\`).
+3.  **Модерност:** Заменят старите и опасни C-функции като `time()` и `dirent.h`.
 
 ---
-
-## 3. Обобщение
-
-*   Използвайте `std::chrono` за всичко свързано с време. Никога не ползвайте `int` за секунди, защото губите мерните единици.
-*   Използвайте `std::filesystem` за навигация по диска. Той се грижи за разликите между `/` (Linux) и `\` (Windows).
-
-```
+*(Този документ е част от курса "Ключови концепции в C++")*
