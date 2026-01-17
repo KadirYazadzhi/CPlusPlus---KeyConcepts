@@ -1,78 +1,60 @@
-# Maps in C++
+# Maps in C++ - The Ultimate Guide
 
-## 1. Introduction
-
-`std::map` is an associative container that stores elements as **Key-Value pairs**.
-
-*   **Keys** are unique and used for sorting and searching.
-*   **Values** are associated with keys.
-
-Implemented as a **Red-Black Tree**.
-
-### Characteristics:
-*   **Sorted:** By key.
-*   **Complexity:** O(log N).
-*   **Unique Keys.**
+## 1. Introduction: The Dictionary of C++
+`std::map` is an associative container that stores **Key-Value pairs**. Each key is unique and is associated with exactly one value. Like `std::set`, elements in a map are always maintained in a sorted order based on their keys.
 
 ---
 
-## 2. Basic Operations
+## 2. Internal Implementation
+Maps are implemented as **self-balancing binary search trees** (typically Red-Black Trees).
+
+### 2.1. Complexity
+*   **Search:** O(log N)
+*   **Insertion:** O(log N)
+*   **Deletion:** O(log N)
+
+---
+
+## 3. Access and Modification
+
+### 3.1. Operator []
+The easiest way to access values. **Warning:** If the key does not exist, the `[]` operator will automatically create it with a default value (e.g., 0 for int).
 
 ```cpp
-#include <map>
-#include <iostream>
+std::map<string, int> ages;
+ages["John"] = 25; // Creates or updates
+```
 
-int main() {
-    std::map<std::string, int> ages;
+### 3.2. Method at()
+Safer than `[]`. If the key is missing, it throws an `std::out_of_range` exception.
 
-    // 1. Operator []
-    ages["Alice"] = 25;
-    ages["Bob"] = 30;
+---
 
-    // 2. Insert pair
-    ages.insert({"Charlie", 20});
+## 4. Iteration
 
-    std::cout << ages["Alice"]; // 25
-    return 0;
+When iterating, you receive a pair of type `std::pair<const Key, Value>`.
+
+```cpp
+for (const auto& [name, age] : ages) { // C++17 Structured Bindings
+    std::cout << name << " is " << age << " years old\n";
 }
 ```
 
 ---
 
-## 3. Access
+## 5. Search Methods
 
-### 3.1. Operator `[]`
-If key doesn't exist, it creates it with default value (0).
-
-### 3.2. `at()`
-Throws exception if key missing.
+1.  **find():** Returns an iterator to the pair.
+2.  **count():** Returns 1 or 0 (since keys are unique).
+3.  **lower_bound() / upper_bound():** Used for finding ranges of keys.
 
 ---
 
-## 4. Search
-
-```cpp
-if (ages.find("Bob") != ages.end()) { /* Found */ }
-```
-
----
-
-## 5. Iteration
-
-Iterates in sorted order.
-
-```cpp
-for (const auto& [name, age] : ages) {
-    std::cout << name << ": " << age << "\n";
-}
-```
+## 6. When to Use Map?
+*   When you need an association (e.g., ID -> User).
+*   When data must always be sorted.
+*   When search must be predictably fast (log N).
 
 ---
 
-## 6. Summary
-
-*   Use for Key-Value associations.
-*   Sorted by key.
-*   O(log N).
-
-```
+*(This document is part of the "C++ Key Concepts" course)*
