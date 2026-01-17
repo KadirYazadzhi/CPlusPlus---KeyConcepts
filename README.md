@@ -6,6 +6,7 @@ The goal of the project is to provide in-depth explanations, real-world examples
 
 ## Table of Contents
 
+### Fundamental Concepts
 1. [References](./References/References.md)
 2. [Pointers](./Pointers/Pointers.md)
 3. [Arrays](./Arrays/Arrays.md)
@@ -23,6 +24,26 @@ The goal of the project is to provide in-depth explanations, real-world examples
 15. [Multimaps](./Multimaps/Multimaps.md)
 16. [Multisets](./Multisets/Multisets.md)
 17. [Recursion](./Recursion/Recursion.md)
+
+### Object-Oriented Programming (OOP)
+18. [Classes and Objects](./Classes_and_Objects/Classes_and_Objects.md)
+19. [Inheritance and Polymorphism](./Inheritance_and_Polymorphism/Inheritance_and_Polymorphism.md)
+20. [Operator Overloading](./Operator_Overloading/Operator_Overloading.md)
+
+### Memory Management & Modern C++
+21. [Smart Pointers](./Smart_Pointers/Smart_Pointers.md)
+22. [Move Semantics](./Move_Semantics/Move_Semantics.md)
+
+### Advanced Features
+23. [Templates](./Templates/Templates.md)
+24. [Exception Handling](./Exception_Handling/Exception_Handling.md)
+25. [Type Casting](./Type_Casting/Type_Casting.md)
+26. [Lambda Expressions](./Lambda_Expressions/Lambda_Expressions.md)
+
+### Standard Library & Systems Programming
+27. [STL Algorithms](./STL_Algorithms/STL_Algorithms.md)
+28. [File I/O](./File_IO/File_IO.md)
+29. [Multithreading](./Multithreading/Multithreading.md)
 
 ---
 *Note: The documentation within each folder is written in Bulgarian.*

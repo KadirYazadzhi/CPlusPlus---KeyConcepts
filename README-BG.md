@@ -6,6 +6,7 @@
 
 ## Съдържание
 
+### Фундаментални Концепции
 1. [Референции (References)](./References/References.md)
 2. [Указатели (Pointers)](./Pointers/Pointers.md)
 3. [Масиви (Arrays)](./Arrays/Arrays.md)
@@ -23,6 +24,26 @@
 15. [Мултикарти (Multimaps)](./Multimaps/Multimaps.md)
 16. [Мултимножества (Multisets)](./Multisets/Multisets.md)
 17. [Рекурсия (Recursion)](./Recursion/Recursion.md)
+
+### Обектно-Ориентирано Програмиране (OOP)
+18. [Класове и Обекти (Classes and Objects)](./Classes_and_Objects/Classes_and_Objects.md)
+19. [Наследяване и Полиморфизъм (Inheritance and Polymorphism)](./Inheritance_and_Polymorphism/Inheritance_and_Polymorphism.md)
+20. [Предефиниране на Оператори (Operator Overloading)](./Operator_Overloading/Operator_Overloading.md)
+
+### Управление на Паметта и Модерен C++
+21. [Интелигентни Указатели (Smart Pointers)](./Smart_Pointers/Smart_Pointers.md)
+22. [Семантика на Преместването (Move Semantics)](./Move_Semantics/Move_Semantics.md)
+
+### Разширени Възможности
+23. [Шаблони (Templates)](./Templates/Templates.md)
+24. [Обработка на Изключения (Exception Handling)](./Exception_Handling/Exception_Handling.md)
+25. [Преобразуване на Типове (Type Casting)](./Type_Casting/Type_Casting.md)
+26. [Ламбда Изрази (Lambda Expressions)](./Lambda_Expressions/Lambda_Expressions.md)
+
+### Стандартна Библиотека и Системно Програмиране
+27. [STL Алгоритми (STL Algorithms)](./STL_Algorithms/STL_Algorithms.md)
+28. [Работа с Файлове (File I/O)](./File_IO/File_IO.md)
+29. [Многонишково Програмиране (Multithreading)](./Multithreading/Multithreading.md)
 
 ---
 *Забележка: Документацията вътре във всяка папка е на български език.*
