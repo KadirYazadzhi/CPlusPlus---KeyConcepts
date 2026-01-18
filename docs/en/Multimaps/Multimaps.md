@@ -1,26 +1,28 @@
-# Multimaps in C++ - The Ultimate Guide
+# Multimaps in C++ - The Ultimate Technical Guide
 
-## 1. Concept: Map with Duplicates
-`std::multimap` is an associative container, similar to `std::map`, but with one key difference: it **allows the same key to occur multiple times**. Each element is a (key, value) pair, and the elements are ordered by key.
-
----
-
-## 2. Key Differences from std::map
-
-1.  **No operator[]:** Since one key can have multiple values, `m[key]` would be ambiguous (which of all values should it return?). Therefore, `insert()`, `find()`, or `equal_range()` must always be used.
-2.  **Duplicates:** `insert()` always adds a new element, even if the key already exists.
+## 1. Introduction: The "One-to-Many" Relationship
+The standard map (`std::map`) requires key uniqueness. In the real world, however, we often need a structure that allows a single key to be associated with multiple values (e.g., an author with many books or a filename with many paths). `std::multimap` is the associative container designed specifically for these scenarios.
 
 ---
 
-## 3. Search Methods
+## 2. Architecture: Sorted Tree with Duplicates
+Like the `map`, the multimap uses a **Red-Black Tree**. The key difference lies in the insertion algorithm – it does not check for the existence of the key; it simply inserts the new pair at the correct position relative to the sort order.
 
-To work with multiple values for a single key, `std::multimap` provides:
-*   **count(key):** Returns how many times the key occurs.
-*   **find(key):** Returns an iterator to the **first** element with that key.
-*   **equal_range(key):** Returns a pair of iterators (`first` and `second`) marking the range of all elements with that key.
+### 2.1. Ordering of Duplicates
+An important guarantee of the C++ standard: elements with the same key are stored in the order of their insertion (**Stable order** for duplicates).
+
+---
+
+## 3. Operations and Working with Ranges
+
+### 3.1. Why is there no `operator[]`?
+This is the most frequent question. Since there can be 10 values for a single key, the expression `m[key]` would be ambiguous. Therefore, access is only possible via iterators.
+
+### 3.2. Finding All Values (Equal Range)
+The professional way to access data in a multimap is via `std::equal_range`. It returns a pair of iterators marking the range of all values for the given key.
 
 ```cpp
-auto range = m.equal_range("Tolkien");
+auto range = my_map.equal_range("Key1");
 for (auto it = range.first; it != range.second; ++it) {
     std::cout << it->second << std::endl;
 }
@@ -28,18 +30,17 @@ for (auto it = range.first; it != range.second; ++it) {
 
 ---
 
-## 4. Implementation and Complexity
-Like `map`, it is implemented using a **Red-Black Tree**.
-*   **Search:** O(log N)
+## 4. Performance (Complexity)
+*   **Searching for the first element:** O(log N)
 *   **Insertion:** O(log N)
-*   **Deletion:** O(log N)
+*   **Finding the entire range:** O(log N)
 
 ---
 
-## 5. Applications
-*   **Dictionary:** One word (key) can have multiple meanings (values).
-*   **Phone Book:** One person can have multiple numbers.
-*   **Database:** Indexes where values are not unique.
+## 5. Professional Tips
+1.  **Deletion:** Be careful! `m.erase("Key")` deletes **ALL** entries with that key. If you want to delete only one specific entry, you must use an iterator.
+2.  **Vector Alternative:** Sometimes `std::map<Key, std::vector<Value>>` is a better architecture than `std::multimap`, especially if you frequently need access to all values at once and memory is a priority.
 
 ---
-*(This document is part of the "C++ Key Concepts" course)*
+*Documentation prepared for the "C++ Key Concepts" project.*
+*Version: 2.0 (Full Detail)*

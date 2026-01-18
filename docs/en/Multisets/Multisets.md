@@ -1,38 +1,47 @@
-# Multisets in C++ - The Ultimate Guide
+# Multisets in C++ - The Ultimate Technical Guide
 
-## 1. Concept: Set with Duplicates
-`std::multiset` is an associative container that contains **sorted** elements, but unlike `std::set`, it **allows duplicate values**.
-
----
-
-## 2. Implementation
-Typically implemented using a **Red-Black Tree**. Duplicate elements are stored as adjacent nodes within the tree.
-
-### 2.1. Complexity
-*   **Insertion (insert):** O(log N).
-*   **Search (find/count):** O(log N).
-*   **Deletion (erase):** O(log N).
+## 1. Concept: When Repetitions Matter
+`std::multiset` is a version of the set that allows storing duplicate values. Although this sounds like an ordinary list, the key difference is that the data is **always sorted**. This is ideal for competition results, grades, or price bids where you want to know the rank of each value.
 
 ---
 
-## 3. Deletion Specifics
+## 2. Implementation and Memory
+Based on a **Red-Black Tree**, the multiset ensures logarithmic complexity.
 
-The `erase()` method has two important behaviors:
-1.  **s.erase(value):** Deletes **ALL** occurrences of that value.
-2.  **s.erase(iterator):** Deletes only the specific element pointed to by the iterator.
-
----
-
-## 4. Search Methods
-*   **count(val):** Returns the number of occurrences of `val`.
-*   **equal_range(val):** Returns the range (iterators) of all copies of `val`.
+### 2.1. Order of Duplicates
+C++ guarantees that if you insert two identical values, they will maintain their order of entry. This is important when working with objects that have the same "sort key" but different other data.
 
 ---
 
-## 5. When to Use Multiset?
-*   When you need data that is always sorted (e.g., a list of race results).
-*   When duplicates are valid data (e.g., multiple students with the same grade).
-*   When you want to quickly find how many times a certain value appears in a sorted sequence.
+## 3. Critical Method Differences
+
+### 3.1. erase(val) vs. erase(iterator)
+This is the trap into which many fall:
+*   `s.erase(10)` – Deletes **ALL** elements with the value 10.
+*   `s.erase(it)` – Deletes **ONLY ONE** specific element.
+
+### 3.2. count(val)
+Unlike a regular set, here `count()` is a real operation that can take **O(log N + K)** time (where K is the number of duplicates).
 
 ---
-*(This document is part of the "C++ Key Concepts" course)*
+
+## 4. Comparative Analysis (The Trade-off)
+
+| Operation | std::vector (sorted) | std::multiset |
+| :--- | :--- | :--- |
+| **Insertion** | O(N) | O(log N) |
+| **Search** | O(log N) | O(log N) |
+| **Memory** | Minimal | High (pointers) |
+
+**Conclusion:** Use `multiset` only if you insert and delete elements dynamically. If data is filled once and only read, a sorted vector is much faster.
+
+---
+
+## 5. Summary
+*   `multiset` keeps data **sorted**.
+*   Beware of bulk deletion by value.
+*   Ideal for dynamic ranking systems (leaderboards).
+
+---
+*Documentation prepared for the "C++ Key Concepts" project.*
+*Version: 2.0 (Full Detail)*
