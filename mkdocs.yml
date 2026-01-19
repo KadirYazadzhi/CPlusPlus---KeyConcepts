@@ -1,17 +1,15 @@
 site_name: C++ Key Concepts / Ключови Концепции в C++
-site_description: Ultimate C++ Guide (Bilingual)
+site_description: The Ultimate C++ Mastery Framework (60 Topics)
 theme:
   name: material
   language: en
   palette:
-    # Palette toggle for light mode
     - scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Palette toggle for dark mode
     - scheme: slate
       primary: indigo
       accent: indigo
@@ -74,6 +72,22 @@ nav:
     - 42. Optimization: en/Optimization_Cache/Optimization_Cache.md
     - 43. Serialization: en/Data_Serialization/Data_Serialization.md
     - 44. SOLID: en/SOLID_Principles/SOLID_Principles.md
+    - 45. std::expected & mdspan: en/Expected_Mdspan/Expected_Mdspan.md
+    - 46. std::print & Formatting: en/Print_Formatting/Print_Formatting.md
+    - 47. Static Analysis: en/Static_Analysis/Static_Analysis.md
+    - 48. Dynamic Analysis (Sanitizers): en/Dynamic_Analysis/Dynamic_Analysis.md
+    - 49. Secure Coding: en/Secure_Coding/Secure_Coding.md
+    - 50. Package Managers: en/Package_Managers/Package_Managers.md
+    - 51. Docker for C++: en/Docker_Cpp/Docker_Cpp.md
+    - 52. SIMD & Vectorization: en/SIMD_Vectorization/SIMD_Vectorization.md
+    - 53. Lock-free Structures: en/LockFree_Data/LockFree_Data.md
+    - 54. Memory Model: en/Memory_Model/Memory_Model.md
+    - 55. Python Interop: en/Cpp_Python_Interop/Cpp_Python_Interop.md
+    - 56. WebAssembly: en/WebAssembly/WebAssembly.md
+    - 57. JNI (Java Interop): en/JNI_Java/JNI_Java.md
+    - 58. ECS Architecture: en/ECS_Architecture/ECS_Architecture.md
+    - 59. Dependency Injection: en/Dependency_Injection/Dependency_Injection.md
+    - 60. Professional Path: en/Professional_Path/Professional_Path.md
   - 🇧🇬 Българска Версия:
     - Начало: bg/README.md
     - 1. Референции: bg/References/References.md
@@ -120,6 +134,22 @@ nav:
     - 42. Оптимизация: bg/Optimization_Cache/Optimization_Cache.md
     - 43. Сериализация: bg/Data_Serialization/Data_Serialization.md
     - 44. SOLID: bg/SOLID_Principles/SOLID_Principles.md
+    - 45. std::expected & mdspan: bg/Expected_Mdspan/Expected_Mdspan.md
+    - 46. std::print & Форматиране: bg/Print_Formatting/Print_Formatting.md
+    - 47. Статичен анализ: bg/Static_Analysis/Static_Analysis.md
+    - 48. Динамичен анализ: bg/Dynamic_Analysis/Dynamic_Analysis.md
+    - 49. Сигурно програмиране: bg/Secure_Coding/Secure_Coding.md
+    - 50. Пакетни мениджъри: bg/Package_Managers/Package_Managers.md
+    - 51. Docker за C++: bg/Docker_Cpp/Docker_Cpp.md
+    - 52. SIMD & Векторизация: bg/SIMD_Vectorization/SIMD_Vectorization.md
+    - 53. Lock-free структури: bg/LockFree_Data/LockFree_Data.md
+    - 54. Модел на паметта: bg/Memory_Model/Memory_Model.md
+    - 55. Python Interop: bg/Cpp_Python_Interop/Cpp_Python_Interop.md
+    - 56. WebAssembly: bg/WebAssembly/WebAssembly.md
+    - 57. JNI (Java мост): bg/JNI_Java/JNI_Java.md
+    - 58. ECS Архитектура: bg/ECS_Architecture/ECS_Architecture.md
+    - 59. Dependency Injection: bg/Dependency_Injection/Dependency_Injection.md
+    - 60. Пътят на Професионалиста: bg/Professional_Path/Professional_Path.md
 
 markdown_extensions:
   - pymdownx.highlight:
