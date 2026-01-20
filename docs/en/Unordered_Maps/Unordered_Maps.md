@@ -1,77 +1,111 @@
-# Unordered Maps in C++ - The Ultimate Technical Guide
+# Unordered Maps in C++ - Complete Technical Guide
 
 ## 1. Introduction: The Speed Revolution
-`std::unordered_map` (introduced in C++11) changed the way C++ programmers work with large volumes of data. While the traditional `std::map` relies on ordering, `std::unordered_map` relies on **extreme speed**. It is implemented via a **Hash Table**, making it the ideal choice for cache systems, dictionaries, and any scenario where searching is the most frequent operation.
+
+`std::unordered_map` (introduced in C++11) changed the way C++ programmers work with large datasets. While the traditional `std::map` relies on ordering and logarithmic speed, `std::unordered_map` relies on **extreme speed** (constant time O(1)).
+It is implemented via a **Hash Table**, making it the ideal choice for caching systems, dictionaries, database indexes, and any scenario where lookup is the most frequent operation.
 
 ---
 
 ## 2. How Does a Hash Table Work? (Under the Hood)
 
 ### 2.1. Hashing and Buckets
-The process is as follows:
-1.  The key is taken (e.g., "User123").
-2.  A **Hash Function** is applied, which converts the string into a large integer.
-3.  This integer is modulated by the number of internal **buckets**.
-4.  The value is stored in the corresponding bucket.
+The magic of O(1) happens through math, not traversal.
+1.  **Input:** Takes the key (e.g., username "Admin").
+2.  **Hash Function:** Applies a `std::hash` function that converts the string into a large integer (e.g., `1489201849`).
+3.  **Mapping:** This number is divided modulo the number of internal "buckets".
+    *   `Bucket_Index = Hash_Value % Bucket_Count`
+4.  **Storage:** The value is stored directly in that bucket.
 
 ### 2.2. Collisions
-When two different keys produce the same hash (or fall into the same bucket), a collision occurs. C++ handles this via **Separate Chaining** – elements within a bucket are arranged in a linked list.
+What happens if two different keys (e.g., "User1" and "User2") land in the same bucket?
+C++ uses the **Separate Chaining** method:
+*   Each "bucket" is actually a pointer to a linked list.
+*   When a collision occurs, the new element is added to this list.
+*   Upon search, the algorithm finds the bucket (instantly) and then linearly searches the short list inside.
 
 ---
 
-## 3. Performance: Average vs. Worst Case
+## 3. Performance: O(1) vs O(N)
 
-*   **Average Complexity:** **O(1)**. The search is instantaneous, whether you have 100 or 100 million elements.
-*   **Worst Case:** **O(N)**. If the hash function is poor and all elements fall into the same bucket, the table degenerates into a list.
-
----
-
-## 4. Managing the Load Factor
-Professional use of `unordered_map` requires understanding two parameters:
-1.  **Load Factor:** The ratio `size / bucket_count`. If it exceeds a certain threshold (usually 1.0), the table performs a **Rehash**.
-2.  **Rehashing:** A new, larger memory space is allocated, and all elements are recalculated and moved. This is an expensive operation (**O(N)**).
-
-**Tip:** If you know the number of elements, use `reserve()` to avoid Rehashing.
+*   **Best/Average Case:** **O(1)**.
+    *   This is achieved when the hash function is good and distributes elements evenly. Buckets are short (0 or 1 element).
+*   **Worst Case:** **O(N)**.
+    *   This happens if the hash function is poor and all 1 million elements land in **a single bucket**. Then the map turns into a slow `std::list`.
 
 ---
 
-## 5. Requirements for Custom Keys
-To use your own class as a key, you must provide two things:
-1.  **operator==**: So the table can distinguish objects during a collision.
-2.  **Hash Function**: A specialization of `std::hash`.
+## 4. Memory Management: Load Factor and Rehashing
 
+Unlike a vector, `unordered_map` has two growth parameters:
+1.  **Max Load Factor:** The ratio `size / bucket_count`. Default is **1.0**. This means C++ allows on average 1 element per bucket.
+2.  **Rehashing:** When you add an element and exceed the Load Factor:
+    *   Allocates a new array with more buckets (usually double).
+    *   **All** elements are rehashed and moved to the new buckets.
+    *   This is an expensive **O(N)** operation.
+
+**Pro Tip:**
 ```cpp
-struct Point { int x, y; };
-
-namespace std {
-    template <>
-    struct hash<Point> {
-        size_t operator()(const Point& p) const {
-            return hash<int>()(p.x) ^ hash<int>()(p.y);
-        }
-    };
-}
+std::unordered_map<int, string> m;
+m.reserve(1000000); // Allocates enough buckets in advance.
+// This avoids multiple Rehashes while filling.
 ```
 
 ---
 
-## 6. Comparative Analysis: Map vs. Unordered Map
+## 5. Key Requirements (Custom Types)
 
-| Feature | std::map | std::unordered_map |
+To use your own class as a key in `unordered_map`, you must teach C++ how to do two things:
+1.  **Compare for equality** (`operator==`), to distinguish collisions.
+2.  **Hash** (specialization of `std::hash`).
+
+```cpp
+struct Point { int x, y; };
+
+// 1. Equality
+bool operator==(const Point& a, const Point& b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+// 2. Hashing (Injecting into std namespace)
+namespace std {
+    template <>
+    struct hash<Point> {
+        size_t operator()(const Point& p) const {
+            // Combining hashes (XOR)
+            return hash<int>()(p.x) ^ (hash<int>()(p.y) << 1);
+        }
+    };
+}
+
+std::unordered_map<Point, string> map; // Now works!
+```
+
+---
+
+## 6. Security: Hash DoS Attacks
+
+If you use `std::unordered_map` in a public web server and read JSON data into it, you are vulnerable.
+A malicious hacker can generate thousands of keys that yield the same hash ("Hash Collision Attack"). This will turn your hash table into a list (O(N)), load the CPU to 100%, and crash the server (Denial of Service).
+**Solution:** Use more complex, cryptographically secure hash functions (e.g., SipHash) or libraries like `abseil::flat_hash_map`.
+
+---
+
+## 7. Comparative Analysis: Map vs Unordered Map
+
+| Feature | `std::map` | `std::unordered_map` |
 | :--- | :--- | :--- |
 | **Structure** | Red-Black Tree | Hash Table |
-| **Speed** | O(log N) | O(1) average |
-| **Ordering** | Sorted | Chaotic |
-| **Memory** | Less (per element) | More (due to buckets) |
-| **Stability** | Predictable | Depends on hash function |
+| **Speed (Lookup)** | O(log N) - Guaranteed | O(1) - Average |
+| **Order** | Sorted (a-z) | Random (Chaotic) |
+| **Memory** | High (Node overhead) | Higher (Buckets + Nodes) |
+| **Iterator Invalidation** | Never (on insert) | Possible (on Rehash) |
 
 ---
 
-## 7. Professional Summary
-*   Use `unordered_map` whenever you seek speed and do not need a sorted order.
-*   Be careful with iterators – they are **Forward Iterators** (one-way only) and are invalidated during a Rehash.
-*   For critical systems, carefully design your hash function to avoid "Hash DoS" attacks.
+## 8. Professional Summary
 
----
-*Documentation prepared for the "C++ Key Concepts" project.*
-*Version: 2.0 (Full Detail)*
+1.  **Default choice:** Use `unordered_map` for speed (Lookups), unless you need sorting.
+2.  **Reserve:** Always use `reserve()` if you know the number of elements.
+3.  **Memory:** Keep in mind that the hash table wastes a lot of memory on empty buckets.
+4.  **Enum Keys:** If your key is an `enum`, prefer using a regular array or `std::vector` (Direct Mapping); it is O(1) without hashing.
