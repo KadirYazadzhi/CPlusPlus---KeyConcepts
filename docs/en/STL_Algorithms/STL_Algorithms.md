@@ -1,52 +1,101 @@
-# STL Algorithms in C++ - The Ultimate Technical Guide
+# STL Algorithms in C++ - Complete Technical Guide
 
 ## 1. Introduction: The Heart of the Standard Template Library
-One of the core principles of C++ is: **"Do not write manual loops if an algorithm for it exists"**. The `<algorithm>` library contains over 100 highly optimized, generic functions that operate on any container via iterators. They are faster, safer, and more readable than manually written code.
+
+One of the core principles of C++ is: **"Don't write raw loops if there is an algorithm for it"**.
+The `<algorithm>` library contains over 100 highly optimized, generic functions. They separate the **logic** (what we do) from the **structure** (what we do it on).
+
+Why use them?
+1.  **Efficiency:** Written by experts and often use SIMD instructions.
+2.  **Correctness:** No off-by-one errors or invalid iterators.
+3.  **Readability:** `std::sort` says more than 10 lines of `for` loops.
 
 ---
 
-## 2. Algorithm Categories (Deep Dive)
+## 2. The Philosophy of Iterators
 
-### 2.1. Non-modifying Operations
-These only analyze the data.
-*   `std::all_of`, `std::any_of`, `std::none_of`: Logical condition checks.
-*   `std::count`, `std::count_if`: Counting occurrences.
-*   `std::find`, `std::find_if`, `std::search`: Searching for values or sub-sequences.
+C++ algorithms don't "know" anything about containers (`vector`, `list`). They work on **Ranges**, defined by two iterators: `[first, last)`.
+*   `first`: Points to the first element.
+*   `last`: Points **after** the last element (Past-the-end).
 
-### 2.2. Modifying Operations
-These change the content or order of elements.
-*   `std::copy`, `std::move`, `std::swap`: Data transfer.
-*   `std::replace`, `std::fill`, `std::generate`: Bulk modification.
-*   `std::remove`, `std::unique`: "Logical" removal (requires `erase` afterwards).
-
-### 2.3. Sorting and Searching
-*   `std::sort`, `std::stable_sort`, `std::partial_sort`: Sorting with O(N log N).
-*   `std::binary_search`, `std::lower_bound`, `std::upper_bound`: Searching in sorted data in O(log N).
+**Iterator Categories:**
+Algorithms require a specific level of access:
+*   **Input Iterator:** `std::find` (one-pass read).
+*   **Forward Iterator:** `std::replace` (one-pass write).
+*   **Bidirectional Iterator:** `std::reverse` (needs `--it`).
+*   **Random Access Iterator:** `std::sort` (needs `it + 5`).
 
 ---
 
-## 3. The Philosophy of Iterators
-Algorithms in C++ "know" nothing about containers. They accept two iterators (`[first, last)`), defining a half-open interval. This allows the same `std::sort` to work on both a `std::vector` and a regular C-array.
+## 3. Algorithm Categories (Deep Dive)
+
+### 3.1. Non-modifying (Read-Only)
+They only analyze data.
+*   **`std::all_of` / `any_of` / `none_of`**: Predicate logic.
+    ```cpp
+    bool hasZero = std::any_of(v.begin(), v.end(), [](int i){ return i == 0; });
+    ```
+*   **`std::count` / `count_if`**: Counting.
+*   **`std::find` / `find_if`**: Linear search.
+
+### 3.2. Modifying (Write/Reorder)
+Change content or order.
+*   **`std::copy` / `copy_if`**: Copying.
+*   **`std::transform`**: Map operation (applies a function to each element).
+    ```cpp
+    std::transform(v.begin(), v.end(), v.begin(), [](int x) { return x * x; });
+    ```
+*   **`std::remove_if`**: Moves "deleted" elements to the end (Erase-Remove Idiom).
+
+### 3.3. Sorting and Binary Search
+This is the "heavy artillery".
+*   **`std::sort`**: O(N log N). Uses IntroSort (Mix of QuickSort, HeapSort, and InsertionSort).
+*   **`std::partial_sort`**: Sorts only the first K elements (useful for Top 10).
+*   **`std::binary_search`**: Returns `true/false`.
+*   **`std::lower_bound`**: Returns an iterator to the first element `>= val`.
 
 ---
 
-## 4. Performance Optimization
-STL algorithms are written by system programming experts. For example, `std::sort` often uses **IntroSort** – a hybrid algorithm that starts with QuickSort, switches to HeapSort at large depths, and uses InsertionSort for small arrays. Achieving such speed manually is extremely difficult.
+## 4. Parallel Algorithms (C++17)
+
+With the advent of multi-core processors, C++17 added "Execution Policies" in `<execution>`.
+
+```cpp
+#include <execution>
+#include <algorithm>
+
+std::sort(std::execution::par, v.begin(), v.end()); // Parallel sort!
+```
+
+**Policies:**
+1.  **`seq`**: Sequential (standard).
+2.  **`par`**: Parallel (multi-threaded).
+3.  **`par_unseq`**: Parallel and vectorized (SIMD). Requires very pure functions without side effects.
 
 ---
 
-## 5. C++20 Ranges: The Future of Algorithms
-In C++20, algorithms were reimagined. You no longer need to pass `v.begin(), v.end()`. You can pass the entire object:
-`std::ranges::sort(vec);`
-This makes the code even cleaner and less prone to errors.
+## 5. C++20 Ranges: The Future
+
+In C++20, algorithms were reimagined. The `<ranges>` library allows composition (Pipe syntax) and lazy execution (Lazy Evaluation).
+
+```cpp
+// Old:
+std::sort(v.begin(), v.end());
+
+// C++20:
+std::ranges::sort(v);
+
+// Composition (Pipeline):
+auto result = v | std::views::filter([](int i){ return i % 2 == 0; })
+                | std::views::transform([](int i){ return i * i; });
+```
+This makes code declarative and readable like SQL or LINQ.
 
 ---
 
 ## 6. Professional Summary
-*   STL algorithms are **safer**: They have been tested billions of times.
-*   They are **faster**: The compiler can optimize them better (e.g., via vector instructions - SIMD).
-*   They are **self-documenting**: `std::find_if` tells your colleagues exactly what you are doing, while a `for` loop requires reading its entire body.
 
----
-*Documentation prepared for the "C++ Key Concepts" project.*
-*Version: 2.0 (Full Detail)*
+1.  **Know the library:** Review the list of algorithms at least once (`cppreference.com`). Often there is a specialized algorithm for your need (e.g., `std::rotate`).
+2.  **Lambdas:** Use them actively for custom predicates.
+3.  **Binary Search:** If data is sorted, always use `std::lower_bound` instead of `std::find`. The difference is O(log N) vs O(N).
+4.  **Erase-Remove:** Don't forget to call `v.erase()` after `std::remove()`, otherwise the vector size won't change.
