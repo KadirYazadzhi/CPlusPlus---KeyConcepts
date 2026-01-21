@@ -1,70 +1,79 @@
-# Dynamic Analysis (Sanitizers) in C++ - The Ultimate Technical Guide
+# Dynamic Analysis in C++ - Complete Technical Guide
 
-## 1. Introduction: When Static Analysis is Not Enough
-Some bugs cannot be found by simply reading the source code. They only appear with specific data during runtime. In the past, programmers used heavy tools like **Valgrind**, but today the gold standard is **Google Sanitizers** (built into Clang and GCC).
+## 1. Introduction: The Truth Comes Out at Runtime
 
-Dynamic analysis injects additional code into your binary that monitors every allocation, every memory access, and every thread.
-
----
-
-## 2. AddressSanitizer (ASan): Death to Memory Leaks
-
-ASan is the most widely used sanitizer. It detects almost all memory-related errors.
-
-### 2.1. What does it detect?
-*   **Use-after-free:** Accessing memory that has already been deleted.
-*   **Heap buffer overflow:** Reading or writing outside the boundaries of a dynamic array.
-*   **Stack buffer overflow:** The same, but for stack-based arrays.
-*   **Memory Leaks:** Finds exactly on which line you forgot to call `delete`.
-
-### 2.2. How to use it?
-Simply add the `-fsanitize=address` flag to the compiler and linker:
-```bash
-g++ -fsanitize=address -g main.cpp -o app
-./app
-```
-If there is an error, the program will stop and show you a full **StackTrace**.
+Static analysis is powerful, but it can't catch everything (e.g., user input or complex network interactions). **Dynamic Analysis** monitors the program while it is running. It acts like an "X-ray" for your process, finding bugs in real-time.
 
 ---
 
-## 3. ThreadSanitizer (TSan): The Race Condition Hunter
+## 2. Sanitizers (Google Sanitizers)
 
-Finding bugs in multithreaded programs is the toughest challenge. TSan analyzes memory access from different threads.
+These are tools built directly into compilers (GCC and Clang). They instrument the code (add checks) at compile time.
 
-### 3.1. What does it detect?
-*   **Data Races:** When two threads access the same memory without a mutex.
-*   **Deadlocks:** When threads block each other.
+### 2.1. AddressSanitizer (ASan)
+The most important tool for the C++ programmer. Detects memory errors.
+*   **Buffer Overflow:** Writing out of bounds on stack or heap arrays.
+*   **Use-After-Free:** Accessing already freed memory (dangling pointers).
+*   **Double Free:** Deleting memory twice.
+*   **Memory Leaks:** (via LeakSanitizer).
 
-⚠️ **WARNING:** TSan slows down the program by 5 to 15 times and requires a lot of memory. It is used only during testing.
+**How does it work? (Shadow Memory)**
+ASan allocates "shadow" memory (1 byte of shadow for every 8 bytes of real memory). When you allocate an array `char a[10]`, ASan marks the area around it as "poisoned". Every memory access is checked against the shadow.
+*   **Overhead:** Slows down the program ~2x. Increases memory usage ~3x.
 
----
+**Activation:**
+`g++ -fsanitize=address -g main.cpp`
 
-## 4. UndefinedBehaviorSanitizer (UBSan)
+### 2.2. ThreadSanitizer (TSan)
+Detects **Data Races** (when two threads write simultaneously without protection).
+*   TSan tracks all atomic operations and mutexes and builds a "Happens-Before" graph. If two operations do not have a "happens-before" relation but access the same memory -> Error.
+*   **Overhead:** Slows down the program ~10x. Increases memory usage ~5x.
 
-C++ is full of "undefined behavior," which often works on your computer but crashes on the server. UBSan catches:
-*   Integer Overflow.
+### 2.3. UndefinedBehaviorSanitizer (UBSan)
+Catches things that are not memory errors but break the standard:
+*   Signed integer overflow.
 *   Division by zero.
-*   Use of `nullptr`.
-*   Invalid casts.
+*   Null pointer dereference.
+*   Alignment issues.
 
 ---
 
-## 5. Performance and "Shadow Memory"
+## 3. Valgrind (Memcheck)
 
-How do these tools work? They use the concept of **Shadow Memory**. For every byte of your memory, the sanitizer maintains a small amount of metadata in a separate region. Before every read or write, the tool checks this metadata.
-*   ASan has about **2x** overhead.
-*   TSan has about **10x** overhead.
+Valgrind is a legendary tool that works on a different principle than Sanitizers. It is a **Virtual Machine**.
+Your program does not run directly on the processor. Valgrind translates it instruction by instruction (JIT Translation).
 
-Therefore, the industry creates special **"Sanitizer Builds"** that run automatically in the CI/CD system.
+### 3.1. Advantages over ASan
+*   **No Recompilation:** You can analyze any binary application (even if you don't have the source code).
+*   **Uninitialized Reads:** Valgrind is much better at detecting if you use a variable before initializing it ("Conditional jump or move depends on uninitialised value(s)").
+
+### 3.2. Disadvantages
+*   **Slow:** Slowdown is **20x to 50x**.
+*   **False Positives:** Sometimes gets confused by optimized code.
+
+---
+
+## 4. Dr. Memory and Other Tools
+
+*   **Dr. Memory:** Similar to Valgrind, but for Windows.
+*   **Heaptrack:** Profiles memory consumption (who allocates the most, where leaks are).
 
 ---
 
-## 6. Professional Summary
-1.  **Never** release software that has not been tested under AddressSanitizer.
-2.  If you are writing multithreaded code, ThreadSanitizer is your **best friend**.
-3.  Sanitizers are not for production environments – they are for your laboratory (Dev/Test).
-4.  Combining Static Analysis (Clang-Tidy) and Dynamic Analysis (Sanitizers) makes C++ code almost as safe as Rust.
+## 5. Fuzzing (Fuzz Testing)
+
+Fuzzing is an automated testing technique where you feed **random, invalid data** to the program to see if it crashes.
+*   **LLVM libFuzzer:** Integrates with ASan. Generates inputs that traverse new paths in the code (Coverage-guided fuzzing).
 
 ---
-*(This document is part of "The Ultimate C++ Mastery Framework".)*
-*(Volume: ~800+ lines in conceptual density)*
+
+## 6. Professional Summary (Best Practices)
+
+1.  **Debug Builds:** Always compile your Debug versions with `-fsanitize=address,undefined`. This will catch 90% of bugs immediately.
+2.  **CI/CD:** Run your tests (Unit Tests) under ASan and TSan in the pipeline.
+3.  **Valgrind:** Use it for deep investigation when you suspect uninitialized memory or when you cannot recompile a library.
+4.  **Performance:** Do not run Sanitizers in Production (unless you have a very specific need), as they slow down the system.
+
+---
+*(Documentation prepared for the project "Key Concepts in C++".*
+*Version: 3.0 - Expert Detail)*

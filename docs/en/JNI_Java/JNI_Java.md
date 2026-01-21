@@ -1,53 +1,131 @@
-# JNI (Java Native Interface) and C++ - The Ultimate Technical Guide
+# JNI (Java Native Interface) and C++ - Complete Technical Guide
 
 ## 1. Introduction: The Bridge Between Worlds
-**JNI** is the standard mechanism for Java (and Android) that allows code running in the Java Virtual Machine (JVM) to call native libraries written in C++. This is critical for:
-*   Hardware access (cameras, sensors).
-*   Using libraries like OpenCV or TensorFlow.
-*   Extreme optimization of performance-critical parts of Android applications.
+
+**JNI** is the standard mechanism in Java (and Android) that allows code running in the Java Virtual Machine (JVM) to call native libraries written in C++.
+It's a two-way street: Java can call C++, but C++ can also create Java objects and call Java methods.
+
+**Why is it needed?**
+*   **Hardware:** Access to cameras, sensors, GPU (Vulkan/Metal).
+*   **Performance:** Heavy math, video processing (FFmpeg), AI models (TensorFlow Lite).
+*   **Legacy Code:** Using existing C++ libraries (OpenCV) in Android apps.
 
 ---
 
 ## 2. JNI Architecture
 
-JNI operates through a special layer of pointers. The primary object is `JNIEnv*` – a pointer to a structure containing all JNI functions (for creating objects, calling methods, etc.).
+JNI works via a "pointer table" to functions. Every C++ function receives a special first argument: `JNIEnv*`.
+
+*   **`JNIEnv*`**: This is your "gateway" to the virtual machine. Through it, you allocate memory, throw exceptions, and call methods. It is valid **only for the current thread**!
+*   **`JavaVM*`**: A global object representing the entire virtual machine. Valid across all threads.
 
 ---
 
-## 3. Development Process
+## 3. Development Process (Step-by-Step)
 
-1. **Java side:** Declare the method as `native`.
-2. **C++ side:** Implement the function with a specific name (e.g., `Java_com_example_MyApp_add`).
-3. **Linking:** Compile the C++ code into a shared library (`.so` or `.dll`).
+### 3.1. Java Side (Declaration)
+```java
+package com.example.app;
+
+public class NativeLib {
+    // Load the library "mylib.so"
+    static { System.loadLibrary("mylib"); }
+
+    // Declare native method
+    public static native String processData(String input);
+}
+```
+
+### 3.2. C++ Side (Implementation)
+The C++ function name must follow a strict pattern: `Java_Package_Class_Method`.
+
+```cpp
+#include <jni.h>
+#include <string>
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_example_app_NativeLib_processData(JNIEnv* env, jclass clazz, jstring input) {
+    // 1. Convert from Java String (UTF-16) to C++ String (UTF-8)
+    const char* nativeString = env->GetStringUTFChars(input, nullptr);
+    std::string cppStr(nativeString);
+    
+    // IMPORTANT: Always release the string!
+    env->ReleaseStringUTFChars(input, nativeString);
+
+    // ... processing ...
+    std::string result = "Processed: " + cppStr;
+
+    // 2. Return new Java String
+    return env->NewStringUTF(result.c_str());
+}
+```
 
 ---
 
-## 4. Memory Management and Strings
+## 4. Memory Management (The Pitfalls)
 
-⚠️ **CRITICAL FOR PROFESSIONALS:** JVM memory is under the control of the Garbage Collector (GC). C++ memory is not.
-*   **Strings:** Java strings are in UTF-16 format. You must convert them to C++ strings (UTF-8) and back.
-*   **Local Refs:** JNI creates local references for every object. If you create them in a loop without clearing them, you will trigger a **JNI Local Reference Table Overflow**.
+⚠️ **CRITICAL:** JVM has a Garbage Collector (GC). C++ does not.
+
+### 4.1. Local References
+Every object you receive from JNI (e.g., `jstring`, `jobject`) is a **Local Reference**.
+*   The GC will not delete this object until your function returns.
+*   **Danger:** If you loop and create 1000 objects without deleting them, the local reference table will overflow and the app will crash.
+*   **Solution:** `env->DeleteLocalRef(obj);`
+
+### 4.2. Global References
+If you want to keep a Java object in C++ for later (e.g., a callback), you must "promote" it to global.
+```cpp
+jobject globalRef = env->NewGlobalRef(localRef);
+// ... used in other functions ...
+env->DeleteGlobalRef(globalRef); // Mandatory manual deletion!
+```
 
 ---
 
-## 5. Android NDK (Native Development Kit)
+## 5. Multithreading
 
-The NDK is an extension of JNI specific to Android. It includes tools for compiling for ARM processors. Professional games for Android (such as PUBG or Call of Duty) are written 90% in C++ via the NDK.
+`JNIEnv` cannot be shared between threads. If you start a new `std::thread` in C++, it doesn't know about the JVM.
+To call Java from it, you must "attach" it:
+
+```cpp
+JavaVM* g_vm; // Saved at startup
+
+void workerThread() {
+    JNIEnv* env;
+    // Attach thread to JVM
+    g_vm->AttachCurrentThread(&env, nullptr);
+
+    // ... work with Java ...
+
+    // Detach (Mandatory before thread ends!)
+    g_vm->DetachCurrentThread();
+}
+```
 
 ---
 
-## 6. Performance
+## 6. Exception Handling
 
-Calling a JNI function is an "expensive" operation (about 10-50 times slower than a normal C++ function).
-**Optimization:** Do not call JNI functions in a loop. Instead of calling C++ 1000 times for small tasks, send a large data array at once and process it in C++.
+C++ exceptions (`std::exception`) **CANNOT** pass through the JNI boundary. If a C++ exception reaches the JVM, the process dies immediately.
+You must catch everything in C++ and "translate" it to Java.
+
+```cpp
+try {
+    doWork();
+} catch (const std::exception& e) {
+    jclass exClass = env->FindClass("java/lang/RuntimeException");
+    env->ThrowNew(exClass, e.what());
+}
+```
 
 ---
 
 ## 7. Professional Summary
-*   Use **JNI** to unlock the full power of mobile devices.
-*   Always be mindful of object lifecycles and clear your references.
-*   JNI is difficult to debug – use logging via `__android_log_print`.
+
+*   **Minimize Transitions:** Switching Java->C++ is expensive. Don't do it for adding two numbers. Do it for processing megabytes of data.
+*   **RAII:** Write C++ wrapper classes around JNI functions to ensure `ReleaseString` and `DeleteLocalRef` happen automatically.
+*   **Keep it simple:** Keep the JNI layer thin. Let the C++ code be clean and independent of Java, and JNI only pass data.
 
 ---
-*(This document is part of "The Ultimate C++ Mastery Framework".)*
-*(Volume: ~800+ lines in conceptual density)*
+*(Documentation prepared for the project "Key Concepts in C++".*
+*Version: 3.0 - Expert Detail)*
