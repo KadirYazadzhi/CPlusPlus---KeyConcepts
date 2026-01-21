@@ -1,68 +1,111 @@
 # Build Системи и CMake - Пълно техническо ръководство
 
 ## 1. Въведение: Проблемът на "Сглобяването"
-Когато проектът ви премине границата от няколко файла, ръчната компилация с `g++` става невъзможна. Имате нужда от система, която знае кои файлове да прекомпилира при промяна, как да намери външни библиотеки (напр. OpenCV или Boost) и как да генерира проектни файлове за различни IDE-та (VS Code, CLion, Visual Studio).
+
+Когато проектът ви е един файл `main.cpp`, командата `g++ main.cpp` е достатъчна. Но когато проектът порасне до 100 файла, 5 външни библиотеки и поддръжка за Windows и Linux, ръчната компилация става кошмар.
+**Build System** е софтуер, който автоматизира този процес. Той следи зависимостите между файловете ("Ако променя `header.h`, кои `.cpp` файлове трябва да се прекомпилират?").
 
 ---
 
 ## 2. Защо CMake е де факто стандартът?
-CMake не е компилатор. Той е **генератор** на build системи. Вие описвате проекта си абстрактно в `CMakeLists.txt`, а CMake генерира `Makefile` (за Linux), `.sln` (за Windows) или `Xcode` проект.
 
-### 2.1. Предимства
-*   **Крос-платформеност:** Един код, един CMake файл, всички операционни системи.
-*   **Out-of-source builds:** Държи сорс кода чист, като компилира всичко в отделна папка (напр. `build/`).
-*   **Управление на зависимости:** Инструменти като `FetchContent` и `find_package`.
+CMake (Cross-platform Make) **НЕ Е** компилатор. Той е **Meta-Build System**.
+Вие описвате проекта си на абстрактен език (`CMakeLists.txt`), а CMake генерира файлове за реалната билд система на вашата платформа:
+*   **Linux:** Генерира `Makefile` (за `make`) или `build.ninja` (за `Ninja`).
+*   **Windows:** Генерира `.sln` (за Visual Studio) или `MinGW Makefiles`.
+*   **MacOS:** Генерира `Xcode` проект.
+
+Това ви позволява да напишете конфигурацията веднъж и да компилирате навсякъде.
 
 ---
 
 ## 3. Анатомия на професионалния CMakeLists.txt
 
-```cmake
-cmake_minimum_required(VERSION 3.15)
-project(Engine VERSION 1.0.0 LANGUAGES CXX)
+Ето как изглежда модерният CMake (Target-based подход):
 
-# Задаване на модерен стандарт
+```cmake
+# 1. Изискване за версия
+cmake_minimum_required(VERSION 3.15)
+
+# 2. Дефиниция на проекта
+project(GameEngine VERSION 1.0.0 LANGUAGES CXX)
+
+# 3. Стандарт (C++20)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Създаване на библиотека
-add_library(core_lib STATIC src/core.cpp)
+# 4. Дефиниране на изпълним файл
+add_executable(my_game src/main.cpp src/player.cpp)
 
-# Създаване на изпълним файл
-add_executable(game_app main.cpp)
+# 5. Включване на директории (за да работят #include "player.h")
+target_include_directories(my_game PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-# Свързване (Linking)
-target_link_libraries(game_app PRIVATE core_lib)
-
-# Управление на заглавни файлове (Headers)
-target_include_directories(core_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
+# 6. Оптимизации (само за Release)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(my_game PRIVATE -O3 -march=native)
+endif()
 ```
 
 ---
 
-## 4. Транзитивни зависимости (Target-based CMake)
-Модерният CMake работи чрез **Targets**. Когато кажете, че вашата програма зависи от библиотека, тя автоматично получава нейните пътища към хедърите и нейните компилационни флагове. Това се нарича "Usage Requirements".
+## 4. Управление на Зависимости (Dependency Management)
+
+Най-трудната част в C++ е добавянето на библиотеки. CMake предлага два мощни механизма:
+
+### 4.1. find_package (За инсталирани библиотеки)
+Търси библиотека, която вече е инсталирана в системата (напр. чрез `apt install` или `vcpkg`).
+```cmake
+find_package(OpenCV REQUIRED)
+target_link_libraries(my_game PRIVATE opencv_core opencv_highgui)
+```
+
+### 4.2. FetchContent (За изтегляне на сорс код)
+Модерен модул (от CMake 3.11), който тегли библиотека от GitHub по време на конфигурацията и я компилира заедно с вашия проект.
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.11.2
+)
+FetchContent_MakeAvailable(json)
+target_link_libraries(my_game PRIVATE nlohmann_json::nlohmann_json)
+```
 
 ---
 
-## 5. Сложни сценарии
+## 5. Structuring: Targets и Scopes
 
-### 5.1. Конфигуриране на файлове (configure_file)
-Позволява ви да предавате версии или настройки от CMake директно в C++ кода чрез генериране на `.h` файлове.
+В модерния CMake всичко е **Target** (изпълним файл или библиотека).
+Функциите като `target_include_directories` и `target_link_libraries` имат обхват (Scope):
+1.  **PRIVATE:** Настройката важи само за текущия таргет.
+2.  **INTERFACE:** Настройката не важи за текущия таргет, но се предава на всеки, който зависи от него (link-ва го).
+3.  **PUBLIC:** Важи и за текущия, и за зависимите.
 
-### 5.2. Профили (Debug vs Release)
-CMake оптимизира кода автоматично:
-*   `Debug`: С включена дебъг информация, без оптимизация.
-*   `Release`: Максимална скорост (`-O3`), без дебъг символи.
+**Пример:** Ако пишете библиотека, която има `.h` файлове в `include/`, използвайте `PUBLIC`, за да може потребителите на библиотеката автоматично да виждат хедърите.
 
 ---
 
-## 6. Професионално обобщение
-*   Никога не използвайте глобални променливи в CMake.
-*   Мислете в **Targets** (обекти), а не в директории.
-*   Използвайте `target_link_libraries` за всичко.
-*   CMake е език за програмиране сам по себе си – научете го, за да контролирате билд процеса си на 100%.
+## 6. Out-of-Source Builds
+
+Никога не пускайте `cmake .` в коренната директория! Това замърсява сорса с временни файлове.
+Правилният начин:
+```bash
+mkdir build
+cd build
+cmake ..  # Генериране
+cmake --build .  # Компилация
+```
+
+---
+
+## 7. Професионално обобщение
+
+1.  **Modern CMake:** Забравете за променливи като `include_directories()`. Използвайте само `target_...` команди.
+2.  **Генератори:** Използвайте **Ninja** вместо Make. Той е значително по-бърз при паралелна компилация.
+3.  **Tooling:** Интегрирайте `Clang-Tidy` и `CppCheck` директно в CMake скрипта за автоматичен анализ на качеството.
+4.  **CCache:** Настройте CMake да ползва `ccache`, за да кешира компилираните обекти и да ускори повторните билдове с 10x.
 
 ---
 *(Документацията е подготвена за проекта "Ключови концепции в C++".*
-*Версия: 2.0 (Пълна детайлност)*
+*Версия: 3.0 - Експертна детайлност)*

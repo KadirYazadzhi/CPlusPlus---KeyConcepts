@@ -1,66 +1,117 @@
-# Unit Testing in C++ - The Ultimate Technical Guide
+# Unit Testing in C++ - Complete Technical Guide
 
 ## 1. Introduction: Software Quality as a Discipline
-Unit Testing is not just a check to see if the code works. It is an engineering practice to ensure the correctness of the smallest isolated parts of the software (functions, methods, classes). In professional C++ development, code without automated tests is considered "incomplete" or even "technical debt."
+
+Unit Testing is not just about checking if the code works. It is an engineering practice for ensuring the correctness of the smallest isolated parts of software (functions, methods, classes). In professional C++ development, code without automated tests is considered "incomplete" or even "technical debt".
+
+Tests are your "safety net". They give you the confidence to refactor and optimize code without fear of breaking something that worked 5 years ago.
 
 ---
 
 ## 2. Anatomy of a Unit Test (The AAA Pattern)
 
-Every professional test should follow a three-stage structure:
+Every professional test should follow the three-stage structure:
 1.  **Arrange:** Initialize objects, set input data, and prepare the environment.
-2.  **Act:** Invoke the functionality being tested.
-3.  **Assert:** Compare the real result with the expected one.
+2.  **Act:** Invoke the functionality we are testing.
+3.  **Assert:** Compare the actual result with the expected one.
 
 ---
 
-## 3. Tooling: Google Test (GTest) and Catch2
+## 3. Tooling: Google Test (GTest)
 
-### 3.1. Google Test (The Industry Standard)
-The most powerful and widely used library. It supports complex fixtures and mocking.
+Google Test is the industry standard for C++.
+
+### 3.1. Assertion Macros
+*   **ASSERT_EQ(val1, val2):** Fatal error. If the check fails, the test stops immediately.
+*   **EXPECT_EQ(val1, val2):** Non-fatal error. The test continues so we can see other potential issues.
+*   **EXPECT_THROW(code, ExceptionType):** Checks if the code throws the correct exception.
+
+### 3.2. Test Fixtures
+If many tests use the same initial configuration (e.g., opening a connection to a test database), we use a `Test Fixture` (inheriting from `testing::Test`).
+
 ```cpp
-#include <gtest/gtest.h>
+class DatabaseTest : public testing::Test {
+protected:
+    void SetUp() override { db.connect(); } // Before each test
+    void TearDown() override { db.disconnect(); } // After each test
+    Database db;
+};
 
-TEST(MathModule, DivisionByZero) {
-    Calculator calc;
-    // Assert
-    EXPECT_THROW(calc.divide(10, 0), std::invalid_argument);
+TEST_F(DatabaseTest, InsertWorks) { // TEST_F instead of TEST
+    db.insert("user", "data");
+    EXPECT_TRUE(db.hasUser("user"));
 }
 ```
 
-### 3.2. Catch2 (The Modern Choice)
-Preferred for new projects due to its clean syntax and lack of complex macros. It uses a BDD (Behavior Driven Development) style.
+### 3.3. Parameterized Tests
+Allow you to execute the same test logic with thousands of different inputs.
+```cpp
+class MathTest : public testing::TestWithParam<int> {};
+
+TEST_P(MathTest, IsEven) {
+    int n = GetParam();
+    EXPECT_EQ(n % 2, 0);
+}
+
+INSTANTIATE_TEST_SUITE_P(EvenNumbers, MathTest, testing::Values(2, 4, 6, 8, 100));
+```
 
 ---
 
-## 4. Isolation and Substitution (Mocking & Stubbing)
+## 4. Isolation and Substitution: Google Mock (GMock)
 
-In real systems, classes depend on databases, networks, or hardware. To test only the class logic, we use **Mocks**.
-*   **Google Mock:** Allows you to create "fake" objects that mimic the behavior of real ones but give you full control over what they return.
+In real systems, classes depend on external resources (network, file system). A unit test must be **isolated**.
+**Google Mock** allows us to create "fake" objects that mimic the behavior of real ones.
+
+```cpp
+class MockBank : public IBank {
+public:
+    MOCK_METHOD(bool, withdraw, (int amount), (override));
+};
+
+TEST(ATM, WithdrawFailsOnNoMoney) {
+    MockBank bank;
+    // Expectations: "withdraw" will be called once with argument 100 and must return false.
+    EXPECT_CALL(bank, withdraw(100)).Times(1).WillOnce(testing::Return(false));
+    
+    ATM atm(&bank);
+    bool result = atm.requestMoney(100);
+    EXPECT_FALSE(result);
+}
+```
 
 ---
 
 ## 5. Methodology: TDD (Test-Driven Development)
 
-TDD changes the workflow:
-1.  **Red:** Write a test that fails.
-2.  **Green:** Write the minimum code to make the test pass.
-3.  **Refactor:** Clean and optimize the code while the tests remain green.
+TDD changes the order of work:
+1.  **Red:** Write a test that fails (because the function doesn't exist yet).
+2.  **Green:** Write the minimal code just to make the test pass.
+3.  **Refactor:** Clean up and optimize the code while tests continue to be green.
 
 ---
 
-## 6. Professional Tips for Maintainable Tests
-1.  **Independence:** Tests must not depend on each other. The execution order should not matter.
-2.  **Speed:** Unit tests should run in milliseconds. If a test is slow, it is an integration test, not a unit test.
-3.  **Code Coverage:** Use tools like `gcov` or `LCOV` to see which lines of your code have not been touched by tests.
+## 6. Integration with CMake
+
+To make testing part of the build process, add it to `CMakeLists.txt`:
+
+```cmake
+enable_testing()
+add_executable(my_tests tests.cpp)
+target_link_libraries(my_tests GTest::gtest_main)
+include(GoogleTest)
+gtest_discover_tests(my_tests)
+```
+Now you can run all tests with the `ctest` command.
 
 ---
 
 ## 7. Professional Summary
-*   Tests are **living documentation**.
-*   Code that is difficult to test is usually **poorly designed** (violates the SRP principle).
-*   The investment in writing tests pays off many times over during the first large-scale system refactoring.
+
+1.  **Code Coverage:** Do not blindly aim for 100% coverage. Test critical business logic and edge cases.
+2.  **No logic in tests:** Test code should be dumb (linear). If you have `if` or `for` in a test, you probably need a test for the test.
+3.  **Speed:** Unit tests must be instant. Slow tests are run rarely and lose their value.
 
 ---
-*Documentation prepared for the "C++ Key Concepts" project.*
-*Version: 2.0 (Full Detail)*
+*(Documentation prepared for the project "Key Concepts in C++".*
+*Version: 3.0 - Expert Detail)*
