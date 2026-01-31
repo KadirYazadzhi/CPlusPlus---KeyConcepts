@@ -1,111 +1,213 @@
 # Build Системи и CMake - Пълно техническо ръководство
 
-## 1. Въведение: Проблемът на "Сглобяването"
+## 1. Въведение: Защо ни трябва "Build System"?
 
-Когато проектът ви е един файл `main.cpp`, командата `g++ main.cpp` е достатъчна. Но когато проектът порасне до 100 файла, 5 външни библиотеки и поддръжка за Windows и Linux, ръчната компилация става кошмар.
-**Build System** е софтуер, който автоматизира този процес. Той следи зависимостите между файловете ("Ако променя `header.h`, кои `.cpp` файлове трябва да се прекомпилират?").
+В началото на вашето обучение, компилацията изглежда проста: `g++ main.cpp -o app`. Но реалният свят е жесток. Един средно голям C++ проект съдържа стотици `.cpp` файлове, десетки хедъри, външни библиотеки (като Boost, OpenCV), ресурсни файлове (икони, шейдъри) и тестове.
+
+Опитът да се управлява това ръчно или с прост shell скрипт води до катастрофа.
+**Build System** е софтуерен архитект, който знае как да сглоби всички тези парчета в работещо приложение.
+
+### Основни задачи на Build системата:
+1.  **Dependency Tracking:** "Ако променя `User.h`, кои 50 `.cpp` файла трябва да се прекомпилират?"
+2.  **Platform Abstraction:** "Как да компилирам това на Windows с MSVC и на Linux с GCC без да променям кода?"
+3.  **Third-party Management:** "Къде се намира библиотеката `OpenSSL` на тази машина?"
 
 ---
 
-## 2. Защо CMake е де факто стандартът?
+## 2. CMake: Де факто стандартът
 
-CMake (Cross-platform Make) **НЕ Е** компилатор. Той е **Meta-Build System**.
-Вие описвате проекта си на абстрактен език (`CMakeLists.txt`), а CMake генерира файлове за реалната билд система на вашата платформа:
+CMake (Cross-platform Make) не е билд система в класическия смисъл. Той е **генератор на билд системи**. Вие описвате проекта си на абстрактен език (`CMakeLists.txt`), а CMake генерира "рецептата" за конкретната платформа:
 *   **Linux:** Генерира `Makefile` (за `make`) или `build.ninja` (за `Ninja`).
 *   **Windows:** Генерира `.sln` (за Visual Studio) или `MinGW Makefiles`.
 *   **MacOS:** Генерира `Xcode` проект.
 
-Това ви позволява да напишете конфигурацията веднъж и да компилирате навсякъде.
+Това означава, че научавайки CMake, вие можете да билдвате софтуер за всяка ОС на планетата (включително Android и iOS).
 
 ---
 
-## 3. Анатомия на професионалния CMakeLists.txt
+## 3. Структура на Професионален Проект
 
-Ето как изглежда модерният CMake (Target-based подход):
+Добрият CMake файл започва с добра файлова структура.
+
+```text
+MyProject/
+├── CMakeLists.txt          (Root конфигурация)
+├── src/
+│   ├── CMakeLists.txt      (Конфигурация за сорса)
+│   ├── main.cpp
+│   └── game.cpp
+├── include/
+│   └── myproject/
+│       └── game.h
+├── tests/
+│   ├── CMakeLists.txt
+│   └── test_game.cpp
+└── external/               (Външни библиотеки)
+```
+
+---
+
+## 4. Модерен CMake (Target-Based Approach)
+
+Преди версия 3.0, CMake разчиташе на глобални променливи (`include_directories`). Това беше грешка. Модерният CMake (3.15+) работи с **Targets** (Цели). Всяка библиотека или изпълним файл е обект, който носи своите свойства със себе си.
+
+### 4.1. Основен CMakeLists.txt
 
 ```cmake
-# 1. Изискване за версия
 cmake_minimum_required(VERSION 3.15)
 
-# 2. Дефиниция на проекта
-project(GameEngine VERSION 1.0.0 LANGUAGES CXX)
+# Дефиниция на проекта и версията
+project(SuperGame VERSION 1.0.0 LANGUAGES CXX)
 
-# 3. Стандарт (C++20)
+# Задължително: C++ Standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) # Изключва компилаторни разширения (като -std=gnu++20)
 
-# 4. Дефиниране на изпълним файл
-add_executable(my_game src/main.cpp src/player.cpp)
+# Добавяне на поддиректории
+add_subdirectory(src)
+add_subdirectory(tests)
+```
 
-# 5. Включване на директории (за да работят #include "player.h")
-target_include_directories(my_game PUBLIC ${CMAKE_SOURCE_DIR}/include)
+### 4.2. Дефиниране на Библиотека (src/CMakeLists.txt)
 
-# 6. Оптимизации (само за Release)
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_options(my_game PRIVATE -O3 -march=native)
+```cmake
+# Създаваме библиотека (STATIC или SHARED)
+add_library(GameEngine STATIC 
+    game.cpp
+    physics.cpp
+)
+
+# Alias namespaces (добра практика за чистота)
+add_library(MyProject::GameEngine ALIAS GameEngine)
+
+# Къде са хедърите?
+# PUBLIC: И за мен, и за тези, които ме ползват.
+# PRIVATE: Само за мен (скрити зависимости).
+target_include_directories(GameEngine PUBLIC 
+    "${CMAKE_SOURCE_DIR}/include"
+)
+
+# Компилаторни флагове (Warnings)
+if(MSVC)
+    target_compile_options(GameEngine PRIVATE /W4 /WX)
+else()
+    target_compile_options(GameEngine PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 ```
 
----
+### 4.3. Дефиниране на Executable (src/CMakeLists.txt)
 
-## 4. Управление на Зависимости (Dependency Management)
-
-Най-трудната част в C++ е добавянето на библиотеки. CMake предлага два мощни механизма:
-
-### 4.1. find_package (За инсталирани библиотеки)
-Търси библиотека, която вече е инсталирана в системата (напр. чрез `apt install` или `vcpkg`).
 ```cmake
-find_package(OpenCV REQUIRED)
-target_link_libraries(my_game PRIVATE opencv_core opencv_highgui)
+add_executable(GameApp main.cpp)
+
+# Свързване с библиотеката
+target_link_libraries(GameApp PRIVATE MyProject::GameEngine)
 ```
 
-### 4.2. FetchContent (За изтегляне на сорс код)
-Модерен модул (от CMake 3.11), който тегли библиотека от GitHub по време на конфигурацията и я компилира заедно с вашия проект.
+---
+
+## 5. Управление на Зависимости (Dependency Management)
+
+Това е най-сложната част. CMake предлага няколко начина:
+
+### 5.1. `find_package` (Системни библиотеки)
+Търси библиотека, инсталирана на ОС (напр. чрез `apt install` или `vcpkg`).
+```cmake
+find_package(OpenCV 4.5 REQUIRED)
+
+# Ако е намерена, добавяме я
+target_link_libraries(GameApp PRIVATE opencv_core opencv_highgui)
+```
+
+### 5.2. `FetchContent` (Модерният начин)
+Изтегля и компилира библиотеката директно от Git по време на конфигурацията. Няма нужда потребителят да инсталира нищо предварително!
+
 ```cmake
 include(FetchContent)
+
 FetchContent_Declare(
   json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
   GIT_TAG v3.11.2
 )
+
 FetchContent_MakeAvailable(json)
-target_link_libraries(my_game PRIVATE nlohmann_json::nlohmann_json)
+
+target_link_libraries(GameApp PRIVATE nlohmann_json::nlohmann_json)
 ```
 
 ---
 
-## 5. Structuring: Targets и Scopes
+## 6. Тестване и Инсталация
 
-В модерния CMake всичко е **Target** (изпълним файл или библиотека).
-Функциите като `target_include_directories` и `target_link_libraries` имат обхват (Scope):
-1.  **PRIVATE:** Настройката важи само за текущия таргет.
-2.  **INTERFACE:** Настройката не важи за текущия таргет, но се предава на всеки, който зависи от него (link-ва го).
-3.  **PUBLIC:** Важи и за текущия, и за зависимите.
+### 6.1. CTest
+CMake има вграден тест рънър.
 
-**Пример:** Ако пишете библиотека, която има `.h` файлове в `include/`, използвайте `PUBLIC`, за да може потребителите на библиотеката автоматично да виждат хедърите.
+```cmake
+enable_testing()
+add_test(NAME CoreTest COMMAND TestsExecutable)
+```
+Сега можете да пуснете всички тестове с командата `ctest`.
+
+### 6.2. Инсталация
+Какво става, когато потребителят напише `make install`?
+
+```cmake
+install(TARGETS GameApp DESTINATION bin)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
+```
 
 ---
 
-## 6. Out-of-Source Builds
+## 7. Генератори и Билдване (Workflow)
 
-Никога не пускайте `cmake .` в коренната директория! Това замърсява сорса с временни файлове.
-Правилният начин:
+Професионалистите **никога** не билдват в сорс директорията. Това се нарича "Out-of-source build".
+
+**Стъпка 1: Конфигурация**
 ```bash
-mkdir build
-cd build
-cmake ..  # Генериране
-cmake --build .  # Компилация
+mkdir build && cd build
+# Използване на Ninja (много по-бърз от Make)
+cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release ..
+```
+
+**Стъпка 2: Билдване**
+```bash
+# --build абстрахира конкретния инструмент (make, ninja, msbuild)
+cmake --build . --parallel 8  # Ползвай 8 ядра
 ```
 
 ---
 
-## 7. Професионално обобщение
+## 8. CMake Presets (C++20 ера)
 
-1.  **Modern CMake:** Забравете за променливи като `include_directories()`. Използвайте само `target_...` команди.
-2.  **Генератори:** Използвайте **Ninja** вместо Make. Той е значително по-бърз при паралелна компилация.
-3.  **Tooling:** Интегрирайте `Clang-Tidy` и `CppCheck` директно в CMake скрипта за автоматичен анализ на качеството.
-4.  **CCache:** Настройте CMake да ползва `ccache`, за да кешира компилираните обекти и да ускори повторните билдове с 10x.
+Вместо да помните дълги командни редове (`-DCMAKE_BUILD_TYPE=Release -G Ninja ...`), създайте файл `CMakePresets.json` в корена.
+
+```json
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-release",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/out/build/x64-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}
+```
+Сега билдвате просто с: `cmake --preset windows-release`.
 
 ---
-*(Документацията е подготвена за проекта "Ключови концепции в C++".*
-*Версия: 3.0 - Експертна детайлност)*
+
+## 9. Професионално обобщение
+
+1.  **Scope е всичко:** Научете разликата между `PRIVATE`, `PUBLIC` и `INTERFACE`. Това определя видимостта на хедъри и флагове.
+2.  **Globbing е зло:** Не използвайте `file(GLOB_RECURSE SOURCES *.cpp)`. Ако добавите нов файл, CMake няма да разбере и няма да регенерира билда. Изреждайте файловете ръчно.
+3.  **CCache:** За големи проекти, настройте `find_program(CCACHE_PROGRAM ccache)` и го активирайте. Това намалява времето за прекомпилация с до 90%.
+4.  **Static Analysis:** Интегрирайте `clang-tidy` директно в CMake чрез `set(CMAKE_CXX_CLANG_TIDY "clang-tidy;...")`.
+
+---
+*(Този документ е част от "The Ultimate C++ Mastery Framework".)*

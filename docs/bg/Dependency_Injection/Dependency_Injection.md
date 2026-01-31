@@ -1,104 +1,179 @@
-# Dependency Injection и Inversion of Control (IoC) - Пълно техническо ръководство
+# Dependency Injection (DI) в C++ - Пълно техническо ръководство
 
-## 1. Въведение: Проблемът с "Твърдите" зависимости
+## 1. Въведение: Защо кодът става "Спагети"?
 
-В лошо проектирания код, класовете сами създават своите зависимости.
-Пример: Класът `Car` създава вътрешно `new V8Engine()`.
-Това води до "Tightly Coupled" код:
-*   **Невъзможно тестване:** Не можете да тествате `Car` без реалния `V8Engine` (който може да е бавен или да изисква хардуер).
-*   **Трудна промяна:** Ако искате електрически двигател, трябва да пренапишете `Car`.
+Една от най-големите грешки в архитектурата е "Твърдото свързване" (Tight Coupling).
+Представете си клас `Database`, който се свързва с MySQL.
+Представете си клас `App`, който прави `new Database()` в конструктора си.
 
-**Inversion of Control (IoC)** е принципът на прехвърляне на контрола върху създаването на обекти на външна система (Main, Framework или Container).
+Сега `App` е женен за `Database`.
+1.  **Не можете да тествате:** За да тествате `App`, трябва да имате работещ MySQL сървър.
+2.  **Не можете да променяте:** Ако искате да минете на PostgreSQL, трябва да пренапишете `App`.
+
+**Dependency Injection (DI)** решава това. Идеята е проста: **Не създавайте зависимостите си вътре. Поискайте някой да ви ги даде отвън.**
 
 ---
 
-## 2. Dependency Injection (DI): Механизмът
+## 2. Inversion of Control (IoC) и SOLID
 
-DI е конкретният начин за прилагане на IoC. Вместо класът да си търси зависимостите, те му се **подават**.
+DI е реализация на принципа **D (Dependency Inversion)** от SOLID:
+> "Модулите от високо ниво не трябва да зависят от модули от ниско ниво. И двата трябва да зависят от абстракции."
 
-### 2.1. Constructor Injection (Златният стандарт)
-Обектът декларира своите зависимости като параметри в конструктора.
-*   **Предимство:** Обектът не може да съществува в невалидно състояние (без двигател).
-*   **Интерфейси:** Зависимостите са абстрактни класове (`IEngine`), а не конкретни (`V8Engine`).
+### Пример за Рефакториране
 
+**Лош код (Tightly Coupled):**
 ```cpp
-class IEngine { virtual void start() = 0; };
-
-class Car {
-    std::shared_ptr<IEngine> engine; // Пазим абстракцията
+class Lamp {
 public:
-    // Инжектиране през конструктора
-    Car(std::shared_ptr<IEngine> e) : engine(e) {
-        if (!engine) throw std::invalid_argument("Engine cannot be null");
-    }
+    void turnOn() { cout << "Light!"; }
+};
+
+class Button {
+    Lamp lamp; // Твърда зависимост
+public:
+    void press() { lamp.turnOn(); }
 };
 ```
 
-### 2.2. Setter Injection
-Зависимостите се задават чрез метод `setEngine()`.
-*   **Кога:** Ако зависимостта е опционална или може да се сменя по време на работа.
-*   **Риск:** Обектът може да бъде използван преди да е напълно инициализиран.
-
----
-
-## 3. Service Locator: Анти-патернът?
-
-Алтернатива на DI е **Service Locator**. Това е глобален регистър, от който всеки си иска каквото му трябва.
+**Добър код (Loosely Coupled):**
 ```cpp
-void Car::start() {
-    auto engine = ServiceLocator::get<IEngine>(); // Car сам си го търси
-    engine->start();
-}
-```
-*   **Проблем:** Скрива зависимостите. Когато гледате `new Car()`, не знаете, че той тайно изисква `IEngine` от локатора. Това прави тестовете трудни.
-*   **Извод:** Избягвайте го, освен в много стари legacy системи.
-
----
-
-## 4. DI Контейнери за C++
-
-В малки проекти (`main.cpp`) можете да свържете всичко ръчно ("Pure DI").
-В големи проекти (100+ класа), ръчното навързване на `new A(new B(new C()))` става кошмар. Тук идват контейнерите.
-
-### 4.1. Google Fruit
-Използва метапрограмиране, за да провери графа на зависимостите по време на компилация. Ако сте забравили да регистрирате `IEngine`, кодът няма да се компилира.
-
-### 4.2. Boost.DI
-Модерна, header-only библиотека с нулев overhead.
-```cpp
-auto injector = di::make_injector(
-    di::bind<IEngine>.to<ElectricEngine>() // Конфигурация
-);
-auto car = injector.create<Car>(); // Автоматично създава Engine и Car
-```
-
----
-
-## 5. Mocking и Тестване
-
-DI е задължително условие за Unit Testing.
-```cpp
-class MockEngine : public IEngine {
-    MOCK_METHOD(void, start, (), (override));
+// 1. Абстракция
+class IDevice {
+public:
+    virtual void turnOn() = 0;
+    virtual ~IDevice() = default;
 };
 
-TEST(CarTest, StartsEngine) {
-    auto mock = std::make_shared<MockEngine>();
-    EXPECT_CALL(*mock, start()); // Очакваме Car да извика start()
+class Lamp : public IDevice {
+public:
+    void turnOn() override { cout << "Light!"; }
+};
+
+class Motor : public IDevice {
+public:
+    void turnOn() override { cout << "Vroom!"; }
+};
+
+// 2. Инжектиране
+class Button {
+    IDevice& device; // Работи с ВСЯКО устройство
+public:
+    Button(IDevice& d) : device(d) {} // Constructor Injection
+    void press() { device.turnOn(); }
+};
+```
+Сега `Button` може да включва лампи, мотори, или дори `MockDevice` за тестове.
+
+---
+
+## 3. Видове Инжектиране
+
+1.  **Constructor Injection (Препоръчително):**
+    *   Зависимостите се подават в конструктора.
+    *   Гарантира, че обектът е напълно инициализиран и валиден.
+    *   Използвайте `const &` или `std::shared_ptr`.
+
+2.  **Setter Injection:**
+    *   `setDevice(IDevice* d)`.
+    *   Полезно за опционални зависимости или кръгови зависимости (A иска B, B иска A).
+
+3.  **Interface Injection:**
+    *   Обектът имплементира интерфейс `IInjectable`, който има метод `inject`. Рядко се ползва в C++.
+
+---
+
+## 4. Mocking Frameworks: Силата на DI
+
+Най-голямата полза от DI е тестването. За целта използваме Mock обекти.
+В C++ най-популярният инструмент е **Google Mock (GMock)**.
+
+```cpp
+#include <gmock/gmock.h>
+
+// Създаваме "фалшив" клас
+class MockDevice : public IDevice {
+public:
+    // Макросът генерира целия нужен код за метода turnOn
+    MOCK_METHOD(void, turnOn, (), (override));
+};
+
+TEST(ButtonTest, PressTurnsOnDevice) {
+    MockDevice mock;
     
-    Car car(mock); // Инжектираме фалшивия двигател
-    car.drive();
+    // Очакваме, че методът turnOn ще бъде извикан точно 1 път
+    EXPECT_CALL(mock, turnOn()).Times(1);
+    
+    Button btn(mock); // Инжектираме фалшивия обект
+    btn.press();
+}
+```
+Без DI, този тест би бил невъзможен.
+
+---
+
+## 5. DI Containers (Frameworks)
+
+В малък проект ("Pure DI"), вие свързвате всичко в `main()`:
+```cpp
+int main() {
+    auto lamp = std::make_shared<Lamp>();
+    auto btn = std::make_shared<Button>(*lamp);
+    btn->press();
+}
+```
+
+В голям проект с 500 класа, този "Composition Root" става огромен. Тук идват DI Framework-ците като **Boost.DI** или **Google Fruit**. Те автоматизират свързването.
+
+### Пример с Boost.DI
+```cpp
+#include <boost/di.hpp>
+namespace di = boost::di;
+
+int main() {
+    // Описваме правилата: Когато някой иска IDevice, дай му Lamp.
+    auto injector = di::make_injector(
+        di::bind<IDevice>.to<Lamp>()
+    );
+
+    // Магия: injector-ът вижда, че Button иска IDevice,
+    // създава Lamp, и после създава Button с нея.
+    auto btn = injector.create<Button>();
+    btn.press();
 }
 ```
 
 ---
 
-## 6. Професионално обобщение
+## 6. Composition Root
 
-1.  **DIP (Dependency Inversion Principle):** Класовете от високо ниво не трябва да зависят от класове от ниско ниво. И двата трябва да зависят от абстракции.
-2.  **Lifetime:** Внимавайте кой притежава инжектирания обект. `std::shared_ptr` е най-безопасен, но `T&` (референция) е по-бърз, ако сте сигурни, че зависимостта живее по-дълго от обекта.
-3.  **Composition Root:** Цялото свързване на обекти трябва да става на едно единствено място (в началото на `main()`).
+Това е архитектурният принцип, който казва:
+**"Цялата конфигурация и свързване на обекти трябва да се случва на едно единствено място – в началото на програмата (`main`)."**
+
+Останалата част от приложението не трябва да знае за `injector` или да вика `new`. Тя просто работи с подадените и интерфейси.
+
+---
+
+## 7. Service Locator (Анти-патерн)
+
+Много хора бъркат DI със Service Locator.
+```cpp
+// Service Locator (Лошо!)
+void Button::press() {
+    auto device = Locator::Get<IDevice>(); // Скрита зависимост!
+    device->turnOn();
+}
+```
+Защо е лошо?
+*   API-то лъже: Конструкторът на `Button` е празен, изглежда, че няма зависимости.
+*   Глобално състояние: Локаторът е глобален Singleton, което прави тестовете трудни (състоянието "изтича" между тестовете).
+
+---
+
+## 8. Професионално обобщение
+
+1.  **Тестваемост:** Това е главната причина за DI. Ако не можете да напишете Unit Test с Mock обект, архитектурата ви е грешна.
+2.  **Lifetime Management:** Контейнерите (като Boost.DI) могат да управляват живота на обектите (Singleton vs Unique).
+3.  **Performance:** C++ DI библиотеките използват шаблони (Templates) и правят всичко по време на компилация. **Няма Runtime Overhead!** Това е огромна разлика спрямо Java/C# контейнерите, които ползват Reflection и са бавни.
 
 ---
 *(Този документ е част от "The Ultimate C++ Mastery Framework".)*
-*(Обем: ~800+ реда в концептуална плътност)*
