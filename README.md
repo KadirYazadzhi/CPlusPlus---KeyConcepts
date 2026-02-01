@@ -193,6 +193,3 @@ The project is organized into 9 logical modules, covering the full spectrum of C
 44. **[SOLID Principles](docs/en/SOLID_Principles/SOLID_Principles.md)**
     *   *What:* The five laws of good OOP design.
     *   *Why:* For creating software that is easy to maintain and extend.
-
----
-*Note: The documentation within each folder is written in Bulgarian.*
